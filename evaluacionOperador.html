@@ -93,8 +93,8 @@
     <section id="eo-tab-geo" class="oculto">
       <div class="caja">
         <h2 class="sec">Rutas del control de viajes y sus geocercas</h2>
-        <p class="nota" style="margin:0 0 10px">Cliente + ciudad del control contra las geocercas de MyGeotab. Con una sola coincidencia se usa sola; si hay varias o ninguna, elige una y guarda. Se guarda en el add-in; el control no se modifica. El tiempo estándar es la mediana de los últimos 90 días del control para esa ruta (mínimo 3 viajes).</p>
-        <div class="acciones" style="margin-bottom:10px"><button class="btn btn-p" id="eo-btnGeoCargar">Cargar rutas de los últimos 90 días</button><button class="btn btn-s" id="eo-btnGeoGuardar" disabled>Guardar asignaciones</button></div>
+        <p class="nota" style="margin:0 0 10px">Cliente + ciudad del control contra las geocercas de MyGeotab. “Detectar con GPS” revisa en qué geocerca se detuvo la unidad a la hora de llegada que dice el control y la propone. Lo que guardes aquí se aprende una sola vez y aplica a todas las evaluaciones; el control no se modifica. El tiempo estándar es la mediana de los últimos 90 días del control para esa ruta (mínimo 3 viajes).</p>
+        <div class="acciones" style="margin-bottom:10px"><button class="btn btn-p" id="eo-btnGeoCargar">Cargar rutas de los últimos 90 días</button><button class="btn btn-s" id="eo-btnGeoGps" disabled>Detectar con GPS</button><button class="btn btn-s" id="eo-btnGeoGuardar" disabled>Guardar asignaciones</button></div>
         <div class="estado" id="eo-geoEstado"></div>
         <div id="eo-geoTabla"></div>
       </div>
@@ -126,7 +126,8 @@ var AJUSTES = {
   // Identificador para guardar historial y configuración en MyGeotab (AddInData). No cambiar una vez en uso.
   addInId: 'aRkEvOp7mQx2Vt9LcN4wZpA',
   // URL de la aplicación web de Apps Script que lee el control de viajes (ver apps_script_control_viajes.gs)
-  controlUrl: 'https://script.google.com/macros/s/AKfycbyqWSRi5NoNgMWz5fnoMfPLqUweC08ceuRrbzSW-F347PEJaxR9gNXpf5TVcwjqsoZ1/exec',
+  logoUrl: 'https://alejandrodelafuente-prog.github.io/evaluacion-operador/logo_rocket.png',
+  controlUrl: 'https://script.google.com/macros/s/AKfycbw2FJ8rjqJUS2DGCY9NQcZmbb_JMyeEoDaDK5LA-sI5fxO4BsZhIYh4dZ1foU5tfJg/exec',
   // Unidades motrices: letra T, V, R o C seguida de número
   patronUnidad: /^([TVRC])\s*-?\s*(\d+)/i
 };
@@ -182,8 +183,9 @@ function inyectarCSS(){
   if (document.getElementById('eo-css')) return;
   var st = document.createElement('style'); st.id = 'eo-css'; st.textContent = CSS;
   (document.head || document.documentElement).appendChild(st);
-  var img = $('#eo-logo'); if (img) img.src = LOGO;
+  var img = $('#eo-logo'); if (img){ img.onerror = function(){ if (img.src !== LOGO) img.src = LOGO; }; img.src = logoSrc(); }
 }
+function logoSrc(){ return /^file:/.test(location.protocol) ? LOGO : AJUSTES.logoUrl; }
 function cargarScript(url){
   return new Promise(function(res, rej){
     if (document.querySelector('script[src="' + url + '"]')) return res();
@@ -257,7 +259,7 @@ function parseFechaTxt(v){
   if (m){ var mi = MES3.indexOf(norm(m[2]).slice(0, 3)); var yy = +m[3]; if (yy < 100) yy += 2000; if (mi >= 0) return new Date(yy, mi, +m[1]); }
   return null;
 }
-function parseHoraTxt(v){ var m = String(v || '').match(/(\d{1,2}):(\d{2})/); return m ? { h: +m[1], m: +m[2] } : null; }
+function parseHoraTxt(v){ var t = String(v || '').toLowerCase(), m = t.match(/(\d{1,2}):(\d{2})/); if (!m) return null; var h = +m[1]; if (/p\.?\s*m/.test(t) && h < 12) h += 12; if (/a\.?\s*m/.test(t) && h === 12) h = 0; return { h: h, m: +m[2] }; }
 function combinar(fecha, horaTxt){ if (!fecha) return null; var h = parseHoraTxt(horaTxt); if (!h) return null; var d = new Date(fecha); d.setHours(h.h, h.m, 0, 0); return d; }
 
 /* =====================================================================
@@ -351,7 +353,7 @@ var COLS = {
   origen: ['origen', 'localidaddeorigen'], hLlegO: ['horallegadaorigen', 'horadellegadaorigen', 'llegadaorigen'],
   hSalO: ['horasalidaorigen', 'horadesalidaorigen', 'salidaorigen'], cita: ['cita', 'horacita', 'citaorigen', 'eta'],
   destino: ['destino', 'localidaddedestino'], fLlegD: ['fechallegadadestino', 'fechadellegadadestino', 'fechallegada'],
-  hArrD: ['horaarribodestino', 'horadearribo', 'horaarribo'], fhArr: ['fechayhoraarribo'],
+  hArrD: ['horaarribodestino', 'horadearribo', 'horaarribo'], fhArr: ['fechayhoraarribo', 'fechayhoradearribo'],
   unidad: ['unidad', 'economico', 'tracto'], operador: ['operador', 'conductor', 'chofer']
 };
 function cargarControl(desde, hasta){
@@ -430,6 +432,19 @@ function zonaPara(cliente, ciudad){
   if (a){ var z = zonas.find(function(x){ return x.id === a.zonaId; }); if (z) return z; }
   var c = candidatos(cliente, ciudad);
   return c.tipo === 'una' ? c.zonas[0] : null;
+}
+function areaZona(z){ var a = 0, p = z.points || []; for (var i = 0, j = p.length - 1; i < p.length; j = i++) a += (p[j].x + p[i].x) * (p[j].y - p[i].y); return Math.abs(a / 2); }
+function zonaDePunto(pt, cliente){
+  if (!pt || !zonas) return null;
+  var tc = tokens(cliente), dentroDe = zonas.filter(function(z){ return dentro(pt, z); });
+  if (!dentroDe.length) return null;
+  dentroDe.sort(function(a, b){ var ca = tc.some(function(t){ return a.tk.indexOf(t) >= 0; }) ? 0 : 1, cb = tc.some(function(t){ return b.tk.indexOf(t) >= 0; }) ? 0 : 1; return ca - cb || areaZona(a) - areaZona(b); });
+  return dentroDe[0];
+}
+function zonaPorGps(trips, ref, cliente){
+  if (!ref) return null; var mejor = null;
+  trips.forEach(function(t){ var dd = Math.abs(t.fin - ref); if (dd <= 4 * 3600000 && (!mejor || dd < mejor.dd)){ var z = zonaDePunto(t.pt, cliente); if (z) mejor = { z: z, dd: dd }; } });
+  return mejor ? mejor.z : null;
 }
 function dentro(pt, z){
   if (!pt || !z || !z.points || z.points.length < 3) return false;
@@ -591,8 +606,9 @@ function evaluar(u, desde, hasta, d, cual, operador){
 
   /* --- servicio --- */
   var viajes = d.filas.map(function(f){
-    var zO = zonaPara(f.cliente, f.origen), zD = zonaPara(f.cliente, f.destino), ref = f.llegO || f.fecha;
+    var ref = f.llegO || f.fecha;
     var trips = (d.tripsAmp || d.trips).map(function(t){ return { ini: new Date(t.start), fin: new Date(t.stop), pt: t.stopPoint }; });
+    var zO = zonaPara(f.cliente, f.origen) || zonaPorGps(trips, f.llegO, f.cliente), zD = zonaPara(f.cliente, f.destino) || zonaPorGps(trips, f.arrD, f.cliente);
     var llegG = null, salG = null, arrG = null;
     if (zO){ var best = null; trips.forEach(function(t){ var dd = Math.abs(t.fin - ref); if (dd <= 12 * 3600000 && dentro(t.pt, zO) && (!best || dd < Math.abs(best - ref))) best = t.fin; }); llegG = best; }
     if (llegG){ var s = trips.find(function(t){ return t.ini >= llegG && !dentro(t.pt, zO); }); salG = s ? s.ini : null; }
@@ -641,7 +657,7 @@ function resumenDias(fechas, conHora){
 /* =====================================================================
    EVALUACIÓN SEMANAL: REPORTE (formato Rocket)
    ===================================================================== */
-function cabecera(der1, der2){ return '<div class="h-cab"><img src="' + LOGO + '" alt="Rocket Logistics"><div class="der"><b>' + esc(der1) + '</b><span>' + esc(der2) + '</span></div></div><div class="rule"></div>'; }
+function cabecera(der1, der2){ return '<div class="h-cab"><img src="' + logoSrc() + '" crossorigin="anonymous" alt="Rocket Logistics"><div class="der"><b>' + esc(der1) + '</b><span>' + esc(der2) + '</span></div></div><div class="rule"></div>'; }
 function kpi(color, valor, txt, colorTxt){ return '<div class="kpi" style="--c:' + color + (colorTxt ? ';--t:' + colorTxt : '') + '"><b>' + valor + '</b><span>' + txt + '</span></div>'; }
 function puntosTd(v){ var n = nivel(v); return '<td class="der" style="font-weight:700;color:' + (n === 'mal' ? '#B3312C' : n === 'bien' ? '#4E9461' : '#222') + '">' + (v == null ? 'Sin dato' : Math.round(v)) + '</td>'; }
 function renderSemana(e){
@@ -931,14 +947,50 @@ function cargarGeo(){
     geoFilas = Object.keys(m).map(function(k){ return { k: k, f: m[k].f, n: m[k].n, std: std[k] }; }).sort(function(a, b){ return b.n - a.n; });
     pintarGeo();
     $('#eo-geoEstado').className = 'estado'; $('#eo-geoEstado').textContent = geoFilas.length + ' rutas en los últimos 90 días, ' + zonas.length + ' geocercas en MyGeotab.';
-    $('#eo-btnGeoGuardar').disabled = false;
+    geoFilasCtl = r[0].filas; $('#eo-btnGeoGuardar').disabled = false; $('#eo-btnGeoGps').disabled = false;
   });
+}
+var geoFilasCtl = [], geoSug = {};
+function detectarGeoGps(){
+  var porEco = {}; unidades.forEach(function(u){ porEco[norm(u.eco)] = u; });
+  var tareas = [];
+  geoFilas.forEach(function(g){
+    var muestras = geoFilasCtl.filter(function(f){ return claveRuta(f) === g.k && porEco[norm(f.unidad)] && (f.llegO || f.arrD); }).slice(-4);
+    muestras.forEach(function(f){
+      var u = porEco[norm(f.unidad)];
+      [['o', f.origen, f.llegO], ['d', f.destino, f.arrD]].forEach(function(x){ if (x[2]) tareas.push({ k: norm(f.cliente) + '|' + norm(x[1]), cliente: f.cliente, ref: x[2], dev: u.id }); });
+    });
+  });
+  if (!tareas.length){ toast('No hay viajes con horas capturadas para comparar contra el GPS'); return; }
+  $('#eo-btnGeoGps').disabled = true;
+  var votos = {}, hechas = 0, lotes = [];
+  for (var i = 0; i < tareas.length; i += 40) lotes.push(tareas.slice(i, i + 40));
+  function sig(){
+    if (!lotes.length){
+      geoSug = {};
+      Object.keys(votos).forEach(function(k){ var v = votos[k], tot = 0, best = null; Object.keys(v.z).forEach(function(id){ tot += v.z[id]; if (!best || v.z[id] > v.z[best]) best = id; }); geoSug[k] = { zonaId: best, votos: v.z[best], total: v.n }; });
+      pintarGeo(); $('#eo-btnGeoGps').disabled = false;
+      $('#eo-geoEstado').textContent = 'Detección con GPS lista: ' + Object.keys(geoSug).length + ' lugares identificados. Revisa y da clic en Guardar asignaciones.';
+      return;
+    }
+    var lote = lotes.shift();
+    multi(lote.map(function(t){ return ['Get', { typeName: 'Trip', search: { deviceSearch: { id: t.dev }, fromDate: new Date(t.ref.getTime() - 6 * 3600000).toISOString(), toDate: new Date(t.ref.getTime() + 6 * 3600000).toISOString() } }]; })).then(function(res){
+      lote.forEach(function(t, i){
+        var trips = (res[i] || []).map(function(x){ return { ini: new Date(x.start), fin: new Date(x.stop), pt: x.stopPoint }; });
+        var z = zonaPorGps(trips, t.ref, t.cliente); var v = votos[t.k] = votos[t.k] || { z: {}, n: 0 }; v.n++; if (z) v.z[z.id] = (v.z[z.id] || 0) + 1;
+      });
+      hechas += lote.length; $('#eo-geoEstado').textContent = 'Comparando con el GPS… ' + hechas + ' de ' + tareas.length; sig();
+    }).catch(function(e){ toast('Error consultando viajes: ' + (e.message || e)); $('#eo-btnGeoGps').disabled = false; });
+  }
+  sig();
 }
 function celdaGeo(cliente, ciudad, lado, i){
   var k = norm(cliente) + '|' + norm(ciudad), a = asignaciones[k], c = candidatos(cliente, ciudad);
-  var est = a ? '<span class="chip c-bien">Asignada</span>' : c.tipo === 'una' ? '<span class="chip c-bien">1 coincidencia</span>' : c.tipo === 'varias' ? '<span class="chip c-reg">' + c.zonas.length + ' posibles, elige</span>' : '<span class="chip c-mal">Sin geocerca del cliente</span>';
+  var sg = geoSug[k] && geoSug[k].zonaId ? geoSug[k] : null;
+  var est = a ? '<span class="chip c-bien">Asignada</span>' : sg ? '<span class="chip c-bien">Detectada por GPS (' + sg.votos + ' de ' + sg.total + ')</span>' : c.tipo === 'una' ? '<span class="chip c-bien">1 coincidencia</span>' : c.tipo === 'varias' ? '<span class="chip c-reg">' + c.zonas.length + ' posibles, elige</span>' : '<span class="chip c-mal">Sin geocerca del cliente</span>';
   var ops = c.zonas.slice(); if (a && !ops.some(function(z){ return z.id === a.zonaId; })){ var za = zonas.find(function(z){ return z.id === a.zonaId; }); if (za) ops.unshift(za); }
-  var sel = a ? a.zonaId : (c.tipo === 'una' ? c.zonas[0].id : '');
+  if (!a && sg && !ops.some(function(z){ return z.id === sg.zonaId; })){ var zs = zonas.find(function(z){ return z.id === sg.zonaId; }); if (zs) ops.unshift(zs); }
+  var sel = a ? a.zonaId : sg ? sg.zonaId : (c.tipo === 'una' ? c.zonas[0].id : '');
   return '<div style="display:flex;flex-direction:column;gap:4px">' + est + '<select data-geo="' + esc(k) + '" data-cli="' + esc(cliente) + '" data-ciu="' + esc(ciudad) + '" aria-label="Geocerca de ' + lado + '" style="min-height:34px;border:1px solid #C9D0CC;border-radius:5px;max-width:280px"><option value="">Elegir geocerca…</option>' +
     ops.map(function(z){ return '<option value="' + esc(z.id) + '"' + (z.id === sel ? ' selected' : '') + '>' + esc(z.name) + '</option>'; }).join('') + '<option value="__todas">Ver todas las geocercas…</option></select></div>';
 }
@@ -1050,6 +1102,7 @@ function enlazar(){
   $('#eo-tendTabla').addEventListener('click', function(e){ var b = e.target.closest('[data-tsel]'); if (b){ tend.sel = b.dataset.tsel; pintarTend(); } });
   $('#eo-btnGeoCargar').addEventListener('click', cargarGeo);
   $('#eo-btnGeoGuardar').addEventListener('click', guardarGeo);
+  $('#eo-btnGeoGps').addEventListener('click', detectarGeoGps);
   $('#eo-geoTabla').addEventListener('change', function(e){
     var s = e.target.closest('select[data-geo]'); if (!s || s.value !== '__todas') return;
     s.innerHTML = '<option value="">Elegir geocerca…</option>' + zonas.slice().sort(function(a, b){ return a.name.localeCompare(b.name); }).map(function(z){ return '<option value="' + esc(z.id) + '">' + esc(z.name) + '</option>'; }).join('');
