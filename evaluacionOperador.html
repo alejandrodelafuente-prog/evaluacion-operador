@@ -27,32 +27,40 @@
 
   <div class="envoltura">
     <!-- ================= SEMANAL ================= -->
-    <section id="eo-tab-semana" class="dos">
-      <aside class="caja">
-        <h2 class="sec">Unidades motrices</h2>
-        <label class="campo">Buscar<input id="eo-buscar" type="search" placeholder="T37, V35…"></label>
-        <div class="nota" id="eo-resumenUnidades" style="margin-top:6px"></div>
-        <div class="lista" id="eo-listaUnidades"></div>
-      </aside>
-      <div>
-        <div class="caja">
-          <div class="campos">
-            <label class="campo">Semana del lunes<input type="date" id="eo-semana"></label>
-            <label class="campo" style="flex:2 1 240px">Operador<input id="eo-operador" placeholder="Se toma del control de viajes"><small id="eo-operadorNota"></small></label>
-            <label class="campo">¿Siguió instrucciones?<select id="eo-qInstr"><option value="si">Sí</option><option value="no">No</option></select></label>
-            <label class="campo">Multas<input type="number" min="0" id="eo-qMultas" value="0"></label>
-            <label class="campo">Daños<input type="number" min="0" id="eo-qDanios" value="0"></label>
-            <label class="campo">Reporte de mtto.<select id="eo-qMtto"><option value="si">Entregado</option><option value="no">No entregado</option></select></label>
-          </div>
-          <div class="acciones" style="margin-top:12px">
-            <button class="btn btn-p" id="eo-btnGenerar">Generar evaluación</button>
-            <button class="btn btn-s" id="eo-btnGuardar" disabled>Guardar en historial</button>
-            <button class="btn btn-s" id="eo-btnPdf" disabled>Descargar PDF</button>
-          </div>
-          <div class="estado" id="eo-estado" role="status" aria-live="polite"></div>
+    <section id="eo-tab-semana">
+      <div class="caja">
+        <div class="campos">
+          <label class="campo" style="flex:2 1 260px">Unidad<select id="eo-unidad"><option value="">Cargando unidades…</option></select><small id="eo-resumenUnidades"></small></label>
+          <label class="campo">Inicio del periodo<input type="date" id="eo-desde"></label>
+          <label class="campo">Fin del periodo<input type="date" id="eo-hasta"><small>Por defecto jueves a miércoles</small></label>
+          <label class="campo" style="flex:2 1 240px">Operador<input id="eo-operador" placeholder="Se toma del control de viajes"><small id="eo-operadorNota"></small></label>
         </div>
-        <div id="eo-reporteSemana"></div>
+        <div class="campos" style="margin-top:12px">
+          <fieldset class="campo" style="flex:3 1 420px;border:1px solid #C9D0CC;border-radius:6px;padding:8px 10px;margin:0">
+            <legend style="padding:0 4px">Faltas reportadas por el supervisor</legend>
+            <div style="display:flex;flex-wrap:wrap;gap:6px 16px;font-weight:400">
+              <label><input type="checkbox" class="eo-falta" value="No contestó llamada"> No contestó llamada</label>
+              <label><input type="checkbox" class="eo-falta" value="Se negó a viaje"> Se negó a viaje</label>
+              <label><input type="checkbox" class="eo-falta" value="Celular apagado"> Celular apagado</label>
+              <label><input type="checkbox" class="eo-falta" value="Otro" id="eo-faltaOtro"> Otro</label>
+              <input id="eo-faltaOtroTxt" placeholder="¿Cuál?" style="min-height:32px;border:1px solid #C9D0CC;border-radius:5px;padding:0 8px;flex:1 1 160px">
+            </div>
+          </fieldset>
+          <label class="campo">Multas<input type="number" min="0" id="eo-qMultas" value="0"></label>
+          <label class="campo">Daños<input type="number" min="0" id="eo-qDanios" value="0"></label>
+          <label class="campo">Reporte de mtto.<select id="eo-qMtto"><option value="si">Entregado</option><option value="no">No entregado</option></select></label>
+        </div>
+        <div class="acciones" style="margin-top:12px">
+          <button class="btn btn-p" id="eo-btnGenerar">Generar evaluación</button>
+          <button class="btn btn-s" id="eo-btnDetalle" disabled>Ver detalle</button>
+          <button class="btn btn-s" id="eo-btnGuardar" disabled>Guardar en historial</button>
+          <button class="btn btn-s" id="eo-btnPdf" disabled>Descargar PDF</button>
+        </div>
+        <div class="estado" id="eo-estado" role="status" aria-live="polite"></div>
       </div>
+      <div id="eo-periodoViajes"></div>
+      <div id="eo-reporteSemana"></div>
+      <div id="eo-detalle" class="oculto"></div>
     </section>
 
     <!-- ================= MENSUAL ================= -->
@@ -64,7 +72,7 @@
           <label class="campo">Mes<input type="month" id="eo-mes"></label>
           <div class="acciones"><button class="btn btn-p" id="eo-btnMes">Ver evaluación mensual</button><button class="btn btn-s" id="eo-btnMesPdf" disabled>Descargar PDF</button></div>
         </div>
-        <div class="nota" style="margin-top:8px">Se arma con las evaluaciones semanales guardadas. Cada semana cuenta en el mes donde cae su jueves.</div>
+        <div class="nota" style="margin-top:8px">Se arma con las evaluaciones guardadas. Cada periodo cuenta en el mes donde cae su día central.</div>
       </div>
       <div id="eo-reporteMes"></div>
     </section>
@@ -74,7 +82,7 @@
       <div class="caja">
         <div class="campos">
           <div class="campo" style="flex:0 0 auto">Ver por<div class="toggle" id="eo-tendModo"><button data-v="op" aria-pressed="true">Operador</button><button data-v="un" aria-pressed="false">Unidad</button></div></div>
-          <div class="campo" style="flex:0 0 auto">Periodo<div class="toggle" id="eo-tendPer"><button data-v="sem" aria-pressed="true">Semanas</button><button data-v="mes" aria-pressed="false">Meses</button></div></div>
+          <div class="campo" style="flex:0 0 auto">Periodo<div class="toggle" id="eo-tendPer"><button data-v="sem" aria-pressed="true">Periodos</button><button data-v="mes" aria-pressed="false">Meses</button></div></div>
         </div>
       </div>
       <div class="caja" style="margin-top:14px"><div id="eo-tendTabla"></div></div>
@@ -118,7 +126,7 @@ var AJUSTES = {
   // Identificador para guardar historial y configuración en MyGeotab (AddInData). No cambiar una vez en uso.
   addInId: 'aRkEvOp7mQx2Vt9LcN4wZpA',
   // URL de la aplicación web de Apps Script que lee el control de viajes (ver apps_script_control_viajes.gs)
-  controlUrl: 'https://script.google.com/a/macros/grupoventi.com.mx/s/AKfycbw2FJ8rjqJUS2DGCY9NQcZmbb_JMyeEoDaDK5LA-sI5fxO4BsZhIYh4dZ1foU5tfJg/exec',
+  controlUrl: 'https://script.google.com/macros/s/AKfycbw2FJ8rjqJUS2DGCY9NQcZmbb_JMyeEoDaDK5LA-sI5fxO4BsZhIYh4dZ1foU5tfJg/exec',
   // Unidades motrices: letra T, V, R o C seguida de número
   patronUnidad: /^([TVRC])\s*-?\s*(\d+)/i
 };
@@ -133,9 +141,10 @@ var CONFIG_BASE = {
     C: { nombre: 'C',      vmax: 110, kml: 4.5, kmSemana: 1500 }
   },
   velocidad: { estado: 'c', puntos: 3, extraGrave: 5, margenGrave: 10, minSeg: 20 },
+  periodo: { diaInicio: 4, corte: 'carga' },
   ralenti: { metaPct: 10, maxPct: 25 },
   servicio: { tolLlegadaMin: 30, tolTransitoPct: 10 },
-  cualitativo: { instruccionesNo: 25, porMulta: 25, porDanio: 30, reportesNo: 20 },
+  cualitativo: { porFalta: 20, porMulta: 25, porDanio: 30, reportesNo: 20 },
   comision: [ { min: 90, pct: 100 }, { min: 80, pct: 95 }, { min: 70, pct: 90 }, { min: 0, pct: 80 } ],
   reglas: [
     { id: 'RuleHarshBrakingId', nombre: 'Frenado brusco', fuente: 'Telemetría', grupo: 'habitos', estado: 'm', cuenta: 'evento', puntos: 4 },
@@ -224,7 +233,10 @@ function hora(d){ return String(d.getHours()).padStart(2, '0') + ':' + String(d.
 function fechaHora(d){ return d ? diaTxt(d) + ', ' + hora(d) : '—'; }
 function rangoTxt(a, b){ return a.getMonth() === b.getMonth() ? a.getDate() + ' al ' + b.getDate() + ' de ' + MESES[b.getMonth()] + ' ' + b.getFullYear() : a.getDate() + ' de ' + MESES[a.getMonth()] + ' al ' + b.getDate() + ' de ' + MESES[b.getMonth()] + ' ' + b.getFullYear(); }
 function semanaISO(d){ var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); var dn = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dn); var y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y0) / 86400000 + 1) / 7); }
-function mesDeSemana(lun){ var j = masDias(lun, 3); return j.getFullYear() + '-' + String(j.getMonth() + 1).padStart(2, '0'); }
+function mesDeSemana(lun, n){ var j = masDias(lun, Math.floor((n || 7) / 2)); return j.getFullYear() + '-' + String(j.getMonth() + 1).padStart(2, '0'); }
+function inicioPeriodo(d){ var x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() - cfg.periodo.diaInicio + 7) % 7)); return x; }
+function periodoAnterior(){ var hoy = new Date(); hoy.setHours(0, 0, 0, 0); var ini = masDias(inicioPeriodo(hoy), -7); return { desde: ini, fin: masDias(ini, 6) }; }
+function corto(d){ return d.getDate() + ' ' + MES3[d.getMonth()]; }
 function nivel(v){ return v == null ? 'na' : v >= 90 ? 'bien' : v >= 70 ? 'reg' : 'mal'; }
 function chip(v, txt){ var n = nivel(v); return '<span class="chip c-' + n + '">' + (txt != null ? txt : (v == null ? '—' : Math.round(v))) + '</span>'; }
 function comisionDe(total){ return cfg.comision.find(function(e){ return (total || 0) >= e.min; }) || cfg.comision[cfg.comision.length - 1]; }
@@ -381,7 +393,7 @@ function cargarControl(desde, hasta){
     }).filter(function(f){ return f.fecha && (f.rkt || f.unidad); });
     var res = { filas: filas, columnas: idx, headers: j.headers };
     controlCache[k] = res; return res;
-  }).catch(function(e){ return { error: 'No se pudo leer el control de viajes: ' + e.message, filas: [] }; });
+  }).catch(function(e){ var m = String(e && e.message || e); return { error: /failed to fetch|load failed|networkerror/i.test(m) ? 'No se pudo conectar con el Apps Script del control de viajes. Abre ' + AJUSTES.controlUrl + '?desde=' + ymd(desde) + '&hasta=' + ymd(hasta) + ' en el navegador y mándame lo que aparece.' : 'No se pudo leer el control de viajes: ' + m, filas: [] }; });
 }
 function claveRuta(f){ return norm(f.cliente) + '|' + norm(f.origen) + '|' + norm(f.destino); }
 function estandares(filas){
@@ -445,26 +457,26 @@ function cargarUnidades(){
   });
 }
 function pintarUnidades(){
-  var q = norm($('#eo-buscar').value), lun = ymd(deYmd($('#eo-semana').value));
-  var ev = 0;
-  var html = unidades.filter(function(u){ return !q || norm(u.nombre).indexOf(q) >= 0; }).map(function(u){
-    var h = historial.find(function(x){ return x.deviceId === u.id && x.semana === lun; });
-    if (h) ev++;
-    return '<button class="uni" data-id="' + u.id + '" aria-pressed="' + (unidadSel && unidadSel.id === u.id) + '"><span><b>' + esc(u.eco) + '</b><small>' + esc(u.operadorMyG || (cfg.tipos[u.tipo] || {}).nombre || '') + '</small></span>' + (h ? chip(h.total) : '<span class="chip c-na">Pendiente</span>') + '</button>';
+  var sel = $('#eo-unidad'), ini = $('#eo-desde').value, ev = 0;
+  sel.innerHTML = '<option value="">Elige una unidad…</option>' + ['T', 'V', 'R', 'C'].map(function(t){
+    var us = unidades.filter(function(u){ return u.tipo === t; }); if (!us.length) return '';
+    return '<optgroup label="' + esc((cfg.tipos[t] || {}).nombre || t) + '">' + us.map(function(u){
+      var h = historial.find(function(x){ return x.deviceId === u.id && x.semana === ini; }); if (h) ev++;
+      return '<option value="' + u.id + '"' + (unidadSel && unidadSel.id === u.id ? ' selected' : '') + '>' + esc(u.eco + (u.operadorMyG ? ' – ' + u.operadorMyG : '')) + (h ? '   (evaluada: ' + h.total + ')' : '   (sin evaluar)') + '</option>';
+    }).join('') + '</optgroup>';
   }).join('');
-  $('#eo-listaUnidades').innerHTML = html || '<div class="vacio">Sin unidades</div>';
-  $('#eo-resumenUnidades').textContent = unidades.length + ' unidades T, V, R y C. ' + ev + ' evaluadas en la semana.';
+  $('#eo-resumenUnidades').textContent = unidades.length + ' unidades T, V, R y C. ' + ev + ' evaluadas en este periodo.';
 }
-
 /* =====================================================================
    EVALUACIÓN SEMANAL: DATOS
    ===================================================================== */
-function datosSemana(u, desde){
-  var hasta = masDias(desde, 7), ds = { id: u.id }, from = desde.toISOString(), to = hasta.toISOString(), d = {};
+function datosSemana(u, desde, hasta){
+  var ds = { id: u.id }, from = desde.toISOString(), to = hasta.toISOString(), d = {};
   var reglas = cfg.reglas.filter(function(r){ return r.estado !== 'a'; });
-  var dias = []; for (var i = 0; i < 7; i++) dias.push(masDias(desde, i));
-  return llamar('Get', { typeName: 'Trip', search: { deviceSearch: ds, fromDate: from, toDate: to } }).then(function(t){
-    d.trips = (t || []).sort(function(a, b){ return new Date(a.start) - new Date(b.start); });
+  var n = Math.round((hasta - desde) / 86400000), dias = []; for (var i = 0; i < n; i++) dias.push(masDias(desde, i));
+  return llamar('Get', { typeName: 'Trip', search: { deviceSearch: ds, fromDate: masDias(desde, -2).toISOString(), toDate: masDias(hasta, 3).toISOString() } }).then(function(t){
+    d.tripsAmp = (t || []).sort(function(a, b){ return new Date(a.start) - new Date(b.start); });
+    d.trips = d.tripsAmp.filter(function(x){ var s = new Date(x.start); return s >= desde && s < hasta; });
     return multi(dias.map(function(x){ return ['Get', { typeName: 'LogRecord', search: { deviceSearch: ds, fromDate: x.toISOString(), toDate: masDias(x, 1).toISOString() } }]; }));
   }).then(function(lr){
     d.logs = [].concat.apply([], lr || []).sort(function(a, b){ return new Date(a.dateTime) - new Date(b.dateTime); });
@@ -479,14 +491,32 @@ function datosSemana(u, desde){
   }).then(function(f){
     var a = f[0] && f[0][0], b = f[1] && f[1][0];
     d.litros = (a && b && b.data > a.data) ? b.data - a.data : null;
-    return Promise.all([cargarControl(desde, hasta), cargarControl(masDias(desde, -90), desde), cargarZonas()]);
+    return Promise.all([cargarControl(masDias(desde, -10), masDias(hasta, 10)), cargarControl(masDias(desde, -90), desde), cargarZonas()]);
   }).then(function(r){
     d.control = r[0]; d.std = estandares(r[1].filas.concat(r[0].filas));
-    d.filas = r[0].filas.filter(function(f){ return norm(f.unidad) === norm(u.eco); });
+    var mias = r[0].filas.filter(function(f){ return norm(f.unidad) === norm(u.eco); });
+    d.clasif = clasificarViajes(mias, desde, hasta);
+    d.filas = d.clasif.filter(function(c){ return c.entra; }).map(function(c){ return c.f; });
     return d;
   });
 }
-
+function clasificarViajes(filas, desde, hasta){
+  var corte = cfg.periodo.corte;
+  return filas.map(function(f){
+    var carga = f.fecha, arr = f.arrD;
+    var cargaDentro = carga >= desde && carga < hasta, arrDentro = arr ? arr >= desde && arr < hasta : null;
+    var entra, motivo;
+    if (corte === 'arribo'){
+      entra = arr ? arrDentro : cargaDentro;
+      motivo = !arr ? (entra ? 'Sin arribo capturado; se toma la fecha de carga' : '') : entra ? (cargaDentro ? 'Carga y arribo dentro del periodo' : 'Cargó en el periodo anterior y arribó en este') : (arr >= hasta ? 'Brinca al siguiente periodo: arribó después del corte' : 'Es del periodo anterior');
+    } else {
+      entra = cargaDentro;
+      motivo = entra ? (arr && arr >= hasta ? 'Cargó en este periodo; arribó después del corte' : 'Carga dentro del periodo') : (carga < desde ? (arr && arr >= desde ? 'Brinca: cargó en el periodo anterior y arribó en este' : 'Periodo anterior') : 'Brinca al siguiente periodo: cargó después del corte');
+    }
+    var toca = cargaDentro || arrDentro;
+    return { f: f, entra: entra, motivo: motivo, toca: toca };
+  }).filter(function(c){ return c.toca; }).sort(function(a, b){ return a.f.fecha - b.f.fecha; });
+}
 /* =====================================================================
    EVALUACIÓN SEMANAL: CÁLCULO
    ===================================================================== */
@@ -502,16 +532,16 @@ function detectarExcesos(logs, lim){
   if (cur) cerrar(cur, cur.ult);
   return out;
 }
-function evaluar(u, desde, d, cual, operador){
-  var tipo = cfg.tipos[u.tipo], hasta = masDias(desde, 7), lim = tipo.vmax;
-  var dias = []; for (var i = 0; i < 7; i++) dias.push(masDias(desde, i));
+function evaluar(u, desde, hasta, d, cual, operador){
+  var tipo = cfg.tipos[u.tipo], lim = tipo.vmax, nD = Math.round((hasta - desde) / 86400000);
+  var dias = []; for (var i = 0; i < nD; i++) dias.push(masDias(desde, i));
   function di(t){ return Math.floor((t - desde) / 86400000); }
   var mejorar = [], items = [], pts = 0;
 
   /* --- velocidad --- */
   var exc = cfg.velocidad.estado === 'a' ? [] : detectarExcesos(d.logs, lim);
   var maxDia = dias.map(function(){ return null; }), sumDia = dias.map(function(){ return 0; }), nDia = dias.map(function(){ return 0; });
-  d.logs.forEach(function(r){ var k = di(new Date(r.dateTime)); if (k < 0 || k > 6) return; var v = r.speed || 0; maxDia[k] = Math.max(maxDia[k] || 0, v); if (v > 5){ sumDia[k] += v; nDia[k]++; } });
+  d.logs.forEach(function(r){ var k = di(new Date(r.dateTime)); if (k < 0 || k >= nD) return; var v = r.speed || 0; maxDia[k] = Math.max(maxDia[k] || 0, v); if (v > 5){ sumDia[k] += v; nDia[k]++; } });
   var velMax = Math.round(Math.max.apply(null, [0].concat(maxDia.filter(function(v){ return v != null; }))));
   if (cfg.velocidad.estado === 'c' && exc.length){
     var pv = exc.reduce(function(s, e){ return s + cfg.velocidad.puntos + (e.grave ? cfg.velocidad.extraGrave : 0); }, 0); pts += pv;
@@ -528,7 +558,7 @@ function evaluar(u, desde, d, cual, operador){
     if (r.estado !== 'c') return;
     var evs = eventos.filter(function(e){ return e.regla.id === r.id; });
     if (r.cuenta === 'dia'){ var g = porGrupoDia[r.grupo] = porGrupoDia[r.grupo] || { dias: {}, puntos: 0, fuentes: {} }; g.puntos = Math.max(g.puntos, r.puntos); evs.forEach(function(e){ g.dias[ymd(e.ini)] = e.ini; g.fuentes[r.fuente] = 1; }); }
-    else if (evs.length){ var p = evs.length * r.puntos; pts += p; items.push({ grupo: r.grupo, nombre: r.nombre, n: evs.length, cuando: resumenDias(evs.map(function(e){ return e.ini; }), true), fuente: r.fuente, pts: p }); }
+    else if (evs.length){ var p = evs.length * r.puntos; pts += p; items.push({ regla: true, grupo: r.grupo, nombre: r.nombre, n: evs.length, cuando: resumenDias(evs.map(function(e){ return e.ini; }), true), fuente: r.fuente, pts: p }); }
   });
   Object.keys(porGrupoDia).forEach(function(gk){
     var g = porGrupoDia[gk], ks = Object.keys(g.dias); if (!ks.length) return;
@@ -536,6 +566,8 @@ function evaluar(u, desde, d, cual, operador){
     items.push({ grupo: gk, nombre: gk === 'cinturon' ? 'Sin cinturón de seguridad' : gk === 'obstruccion' ? 'Cámara obstruida' : GRUPOS[gk], n: ks.length, unidadN: 'días', cuando: resumenDias(ks.map(function(k){ return g.dias[k]; })), fuente: Object.keys(g.fuentes).join(' y '), pts: p });
   });
   var porGrupo = {}; items.forEach(function(it){ (porGrupo[it.grupo] = porGrupo[it.grupo] || []).push(it); });
+  var velR = (porGrupo.velocidad || []).filter(function(it){ return it.regla; });
+  if (velR.length) mejorar.push('Velocidad: ' + velR.map(function(it){ return '<b>' + esc(it.nombre) + ' (' + it.n + ')</b>'; }).join(', ') + '.');
   if (porGrupo.conducta) mejorar.push('Cámara: ' + porGrupo.conducta.map(function(it){ return (it.nombre === 'Uso de celular' ? '<b style="color:#B3312C">' : '<b>') + it.nombre.toLowerCase() + ' (' + it.n + ')</b>'; }).join(', ') + '.');
   if (porGrupo.cinturon) mejorar.push('Cinturón: sin cinturón en <b>' + porGrupo.cinturon[0].n + (porGrupo.cinturon[0].n === 1 ? ' día' : ' días') + '</b>.');
   if (porGrupo.obstruccion) mejorar.push('Cámara obstruida o tapada en <b>' + porGrupo.obstruccion[0].n + (porGrupo.obstruccion[0].n === 1 ? ' día' : ' días') + '</b>. La cámara al conductor y al camino deben estar libres.');
@@ -545,12 +577,12 @@ function evaluar(u, desde, d, cual, operador){
 
   /* --- rendimientos --- */
   var km = 0, manejo = 0, ral = 0, kmDia = dias.map(function(){ return 0; }), ralDia = dias.map(function(){ return 0; }), manDia = dias.map(function(){ return 0; }), conViaje = dias.map(function(){ return false; });
-  d.trips.forEach(function(t){ var k = di(new Date(t.start)), dk = t.distance || 0, dv = durSeg(t.drivingDuration), id = durSeg(t.idlingDuration); km += dk; manejo += dv; ral += id; if (k >= 0 && k < 7){ kmDia[k] += dk; ralDia[k] += id; manDia[k] += dv; conViaje[k] = true; } });
+  d.trips.forEach(function(t){ var k = di(new Date(t.start)), dk = t.distance || 0, dv = durSeg(t.drivingDuration), id = durSeg(t.idlingDuration); km += dk; manejo += dv; ral += id; if (k >= 0 && k < nD){ kmDia[k] += dk; ralDia[k] += id; manDia[k] += dv; conViaje[k] = true; } });
   var ralPct = (manejo + ral) ? ral / (manejo + ral) * 100 : null;
   var kml = (d.litros && km > 0) ? km / d.litros : null; if (kml != null && (kml < 0.5 || kml > 40)) kml = null;
   var sKml = kml == null ? null : clamp(kml / tipo.kml * 100);
   var cr = cfg.ralenti, sRal = ralPct == null ? null : ralPct <= cr.metaPct ? 100 : ralPct >= cr.maxPct ? 0 : 100 * (cr.maxPct - ralPct) / (cr.maxPct - cr.metaPct);
-  var sKm = d.trips.length ? clamp(km / tipo.kmSemana * 100) : null;
+  var kmMeta = tipo.kmSemana * nD / 7, sKm = d.trips.length ? clamp(km / kmMeta * 100) : null;
   var rendimientos = promedio([sKml, sRal, sKm]);
   var partesComb = [];
   if (kml != null && kml < tipo.kml) partesComb.push('<b>' + n1(kml) + ' km/L</b> contra meta de ' + n1(tipo.kml));
@@ -560,7 +592,7 @@ function evaluar(u, desde, d, cual, operador){
   /* --- servicio --- */
   var viajes = d.filas.map(function(f){
     var zO = zonaPara(f.cliente, f.origen), zD = zonaPara(f.cliente, f.destino), ref = f.llegO || f.fecha;
-    var trips = d.trips.map(function(t){ return { ini: new Date(t.start), fin: new Date(t.stop), pt: t.stopPoint }; });
+    var trips = (d.tripsAmp || d.trips).map(function(t){ return { ini: new Date(t.start), fin: new Date(t.stop), pt: t.stopPoint }; });
     var llegG = null, salG = null, arrG = null;
     if (zO){ var best = null; trips.forEach(function(t){ var dd = Math.abs(t.fin - ref); if (dd <= 12 * 3600000 && dentro(t.pt, zO) && (!best || dd < Math.abs(best - ref))) best = t.fin; }); llegG = best; }
     if (llegG){ var s = trips.find(function(t){ return t.ini >= llegG && !dentro(t.pt, zO); }); salG = s ? s.ini : null; }
@@ -581,9 +613,10 @@ function evaluar(u, desde, d, cual, operador){
 
   /* --- cualitativo --- */
   var cq = cfg.cualitativo;
-  var cualitativo = clamp(100 - (cual.instr === 'no' ? cq.instruccionesNo : 0) - cual.multas * cq.porMulta - cual.danios * cq.porDanio - (cual.mtto === 'no' ? cq.reportesNo : 0));
-  var fallasC = [];
-  if (cual.instr === 'no') fallasC.push('no siguió instrucciones'); if (cual.multas) fallasC.push(cual.multas + (cual.multas === 1 ? ' multa' : ' multas')); if (cual.danios) fallasC.push(cual.danios + (cual.danios === 1 ? ' daño' : ' daños')); if (cual.mtto === 'no') fallasC.push('no entregó reporte de mtto.');
+  var faltas = (cual.faltas || []).map(function(f){ return f === 'Otro' ? (cual.otro ? 'Otro: ' + cual.otro : 'Otra falta') : f; });
+  var cualitativo = clamp(100 - faltas.length * cq.porFalta - cual.multas * cq.porMulta - cual.danios * cq.porDanio - (cual.mtto === 'no' ? cq.reportesNo : 0));
+  var fallasC = faltas.map(function(f){ return f.charAt(0).toLowerCase() + f.slice(1); });
+  if (cual.multas) fallasC.push(cual.multas + (cual.multas === 1 ? ' multa' : ' multas')); if (cual.danios) fallasC.push(cual.danios + (cual.danios === 1 ? ' daño' : ' daños')); if (cual.mtto === 'no') fallasC.push('no entregó reporte de mtto.');
   if (fallasC.length) mejorar.push('Supervisor: ' + fallasC.join(', ') + '.');
 
   var P = cfg.pesos;
@@ -597,7 +630,7 @@ function evaluar(u, desde, d, cual, operador){
     km: km, kmDia: kmDia, ralDia: ralDia, manDia: manDia, conViaje: conViaje, ralPct: ralPct, litros: d.litros, kml: kml, sKml: sKml, sRal: sRal, sKm: sKm,
     viajes: viajes, sLleg: sLleg, sTrans: sTrans, cual: cual, mejorar: mejorar,
     rubros: { seguridad: seguridad, rendimientos: rendimientos, servicio: servicio, cualitativo: cualitativo },
-    total: total, com: com, controlError: d.control.error
+    total: total, com: com, controlError: d.control.error, nD: nD, kmMeta: kmMeta, faltas: faltas, clasif: d.clasif || []
   };
 }
 function resumenDias(fechas, conHora){
@@ -612,22 +645,22 @@ function cabecera(der1, der2){ return '<div class="h-cab"><img src="' + LOGO + '
 function kpi(color, valor, txt, colorTxt){ return '<div class="kpi" style="--c:' + color + (colorTxt ? ';--t:' + colorTxt : '') + '"><b>' + valor + '</b><span>' + txt + '</span></div>'; }
 function puntosTd(v){ var n = nivel(v); return '<td class="der" style="font-weight:700;color:' + (n === 'mal' ? '#B3312C' : n === 'bien' ? '#4E9461' : '#222') + '">' + (v == null ? 'Sin dato' : Math.round(v)) + '</td>'; }
 function renderSemana(e){
-  var u = e.u, fin = masDias(e.desde, 6), sem = semanaISO(e.desde), P = cfg.pesos, t = e.tipo;
+  var u = e.u, fin = masDias(e.hasta, -1), P = cfg.pesos, t = e.tipo;
   var flot = { T: 'Flotilla Tractos', V: 'Flotilla Vans', R: 'Flotilla R', C: 'Flotilla C' }[u.tipo];
   var etq = e.dias.map(diaTxt), sombra = []; e.conViaje.forEach(function(c, i){ if (!c) sombra.push(i); });
   var iMax = e.maxDia.indexOf(Math.max.apply(null, e.maxDia.map(function(v){ return v || 0; })));
   var excMax = e.exc.slice().sort(function(a, b){ return b.max - a.max; })[0];
 
-  var p1 = '<div class="hoja">' + cabecera('rocketlogistics.xyz', 'SOLUCIONES DE TRANSPORTE Y LOGÍSTICA · ' + flot + ' · Semana ' + sem + ', ' + e.desde.getFullYear()) +
-    '<div class="h-tit"><h1>Evaluación semanal – ' + esc(e.operador || 'Operador sin identificar') + '</h1><div>Unidad ' + esc(u.eco) + ' (' + esc(t.nombre.toLowerCase()) + ', límite ' + e.lim + ' km/h)  |  Semana del ' + rangoTxt(e.desde, fin) + '  |  ' + e.viajes.length + ' viajes  |  Emisión: ' + ymd(new Date()) + '</div></div>' +
-    '<div class="kpis">' + kpi('#3E64B4', (e.total == null ? '—' : e.total) + ' <small>de 100</small>', 'calificación de la semana') + kpi('#4A8DA3', e.com.pct + '%', 'comisión a pagar', '#3F7F94') +
+  var p1 = '<div class="hoja">' + cabecera('rocketlogistics.xyz', 'SOLUCIONES DE TRANSPORTE Y LOGÍSTICA · ' + flot + ' · Periodo ' + corto(e.desde) + ' al ' + corto(fin) + ' ' + fin.getFullYear()) +
+    '<div class="h-tit"><h1>Evaluación semanal – ' + esc(e.operador || 'Operador sin identificar') + '</h1><div>Unidad ' + esc(u.eco) + ' (' + esc(t.nombre.toLowerCase()) + ', límite ' + e.lim + ' km/h)  |  Periodo del ' + rangoTxt(e.desde, fin) + '  |  ' + e.viajes.length + ' viajes  |  Emisión: ' + ymd(new Date()) + '</div></div>' +
+    '<div class="kpis">' + kpi('#3E64B4', (e.total == null ? '—' : e.total) + ' <small>de 100</small>', 'calificación del periodo') + kpi('#4A8DA3', e.com.pct + '%', 'comisión a pagar', '#3F7F94') +
       kpi('#5CA36E', e.kml == null ? 'Sin dato' : n1(e.kml) + ' km/L', 'rendimiento (meta ' + t.nombre.toLowerCase() + ' ' + n1(t.kml) + ' km/L)', '#4E9461') + kpi('#B3312C', e.incidencias, 'incidencias de seguridad') + '</div>' +
-    '<div class="h-sec"><h2>Lo que debes mejorar</h2>' + (e.mejorar.length ? '<ul>' + e.mejorar.map(function(m){ return '<li>' + m + '</li>'; }).join('') + '</ul>' : '<div>Semana sin observaciones. Sigue así.</div>') + '</div>' +
-    '<div class="h-sec"><h2>Calificación por rubro</h2><table class="t"><thead><tr><th style="width:21%">Rubro</th><th>Resultado de la semana</th><th style="width:24%">Meta</th><th class="der" style="width:9%">Puntos</th></tr></thead><tbody>' +
+    '<div class="h-sec"><h2>Lo que debes mejorar</h2>' + (e.mejorar.length ? '<ul>' + e.mejorar.map(function(m){ return '<li>' + m + '</li>'; }).join('') + '</ul>' : '<div>Periodo sin observaciones. Sigue así.</div>') + '</div>' +
+    '<div class="h-sec"><h2>Calificación por rubro</h2><table class="t"><thead><tr><th style="width:21%">Rubro</th><th>Resultado del periodo</th><th style="width:24%">Meta</th><th class="der" style="width:9%">Puntos</th></tr></thead><tbody>' +
       '<tr><td>Seguridad <span style="color:#666">(' + P.seguridad + '%)</span></td><td>' + (e.items.length ? e.items.map(function(it){ return it.grupo === 'velocidad' ? it.n + (it.n === 1 ? ' exceso' : ' excesos') : it.unidadN ? it.nombre.toLowerCase() + ' ' + it.n + (it.n === 1 ? ' día' : ' días') : it.nombre.toLowerCase() + ' (' + it.n + ')'; }).join(', ') : 'Sin incidencias') + '</td><td>0 incidencias</td>' + puntosTd(e.rubros.seguridad) + '</tr>' +
-      '<tr><td>Rendimientos <span style="color:#666">(' + P.rendimientos + '%)</span></td><td>' + (e.kml == null ? 'km/L sin dato' : n1(e.kml) + ' km/L') + ' · ralentí ' + (e.ralPct == null ? '—' : Math.round(e.ralPct) + '%') + ' · ' + n0(e.km) + ' km</td><td>' + n1(t.kml) + ' km/L · ' + cfg.ralenti.metaPct + '% · ' + n0(t.kmSemana) + ' km</td>' + puntosTd(e.rubros.rendimientos) + '</tr>' +
+      '<tr><td>Rendimientos <span style="color:#666">(' + P.rendimientos + '%)</span></td><td>' + (e.kml == null ? 'km/L sin dato' : n1(e.kml) + ' km/L') + ' · ralentí ' + (e.ralPct == null ? '—' : Math.round(e.ralPct) + '%') + ' · ' + n0(e.km) + ' km</td><td>' + n1(t.kml) + ' km/L · ' + cfg.ralenti.metaPct + '% · ' + n0(e.kmMeta) + ' km</td>' + puntosTd(e.rubros.rendimientos) + '</tr>' +
       '<tr><td>Servicio <span style="color:#666">(' + P.servicio + '%)</span></td><td>' + servicioTxt(e) + '</td><td>Todos en tiempo</td>' + puntosTd(e.rubros.servicio) + '</tr>' +
-      '<tr><td>Cualitativo <span style="color:#666">(' + P.cualitativo + '%)</span></td><td>' + (e.rubros.cualitativo === 100 ? 'Sin multas ni daños; instrucciones y mtto. OK' : 'Con observaciones del supervisor') + '</td><td>Sin faltas</td>' + puntosTd(e.rubros.cualitativo) + '</tr>' +
+      '<tr><td>Cualitativo <span style="color:#666">(' + P.cualitativo + '%)</span></td><td>' + (e.rubros.cualitativo === 100 ? 'Sin faltas, multas ni daños; mtto. OK' : esc([].concat(e.faltas, e.cual.multas ? [e.cual.multas + ' multa(s)'] : [], e.cual.danios ? [e.cual.danios + ' daño(s)'] : [], e.cual.mtto === 'no' ? ['sin reporte de mtto.'] : []).join(', '))) + '</td><td>Sin faltas</td>' + puntosTd(e.rubros.cualitativo) + '</tr>' +
       '<tr class="tot"><td>Total</td><td>Comisión ' + e.com.pct + '%</td><td></td><td class="der">' + (e.total == null ? '—' : e.total) + '</td></tr></tbody></table>' +
       '<div class="pie-n">Comisión: ' + cfg.comision.map(function(c, i){ return (i === cfg.comision.length - 1 ? 'menos de ' + cfg.comision[i - 1].min : c.min + ' a ' + (i ? cfg.comision[i - 1].min - 1 : 100) + ' pts') + ' = ' + c.pct + '%'; }).join('  ·  ') + '. Un rubro sin dato no cuenta y su peso se reparte.</div></div>' +
     '<div class="h-sec"><h2>Velocidad máxima diaria</h2>' + grafLinea({ etiquetas: etq, sombra: sombra, ref: e.lim, refTxt: e.lim + ' lím.', ytxt: 'km/h', ymax: Math.max(160, e.velMax + 10), aria: 'Velocidad máxima y promedio por día',
@@ -644,11 +677,11 @@ function renderSemana(e){
       var ll = v.aTiempo == null ? (v.lleg ? fechaHora(v.lleg) : '—') : v.aTiempo ? 'A tiempo' : '<span class="rojo">' + minTxt(v.tarde) + ' tarde</span>';
       var tr = v.trans == null ? '—' : v.std == null ? hm(v.trans) + ' / sin estándar' : (v.transOk === false ? '<span class="rojo">' + hm(v.trans) + ' / ' + hm(v.std) + ' (' + minTxt((v.trans - v.std) * 60) + ' de más)</span>' : hm(v.trans) + ' / ' + hm(v.std));
       return '<tr><td>' + esc(v.rkt) + '</td><td>' + esc(v.cliente) + '</td><td>' + esc(v.ruta) + '</td><td>' + ll + '</td><td>' + tr + '</td></tr>';
-    }).join('') + '</tbody></table><div class="pie-n">* Estándar provisional: mediana de los últimos 90 días del control para la misma ruta (mínimo 3 viajes). Llegada a origen: se califica solo si el control trae cita (hasta ' + cfg.servicio.tolLlegadaMin + ' min de tolerancia). Tránsito en tiempo = hasta ' + cfg.servicio.tolTransitoPct + '% sobre el estándar.</div>'
-    : '<div class="vacio">' + (e.controlError ? esc(e.controlError) : 'Sin viajes de esta unidad en el control de viajes para la semana.') + '</div>';
-  var p2 = '<div class="hoja">' + cabecera(e.operador || 'Operador sin identificar', 'Unidad ' + u.eco + ' · Semana del ' + rangoTxt(e.desde, fin)) +
+    }).join('') + '</tbody></table><div class="pie-n">* Estándar provisional: mediana de los últimos 90 días del control para la misma ruta (mínimo 3 viajes). Llegada a origen: se califica solo si el control trae cita (hasta ' + cfg.servicio.tolLlegadaMin + ' min de tolerancia). Tránsito en tiempo = hasta ' + cfg.servicio.tolTransitoPct + '% sobre el estándar.' + (function(){ var b = e.clasif.filter(function(c){ return !c.entra; }).length; return b ? ' ' + b + (b === 1 ? ' viaje brinca' : ' viajes brincan') + ' de periodo y no se evalúan aquí.' : ''; })() + '</div>'
+    : '<div class="vacio">' + (e.controlError ? esc(e.controlError) : 'Sin viajes de esta unidad en el control de viajes para el periodo.') + '</div>';
+  var p2 = '<div class="hoja">' + cabecera(e.operador || 'Operador sin identificar', 'Unidad ' + u.eco + ' · Periodo del ' + rangoTxt(e.desde, fin)) +
     '<div class="h-sec"><h2>Incidencias de seguridad</h2>' + incTabla + '</div>' +
-    '<div class="h-sec"><h2>Viajes de la semana</h2>' + viajesTabla + '</div>' +
+    '<div class="h-sec"><h2>Viajes del periodo</h2>' + viajesTabla + '</div>' +
     '<div class="h-sec"><h2>Kilómetros y ralentí por día</h2>' + grafBarras({ etiquetas: etq, valores: e.kmDia.map(Math.round), sombra: sombra, ytxt: 'km', subTxt: 'Ralentí', aria: 'Kilómetros y ralentí por día',
       sub: e.kmDia.map(function(k, i){ var tot = e.manDia[i] + e.ralDia[i]; if (!tot) return { txt: '–', color: '#555' }; var p = e.ralDia[i] / tot * 100; return { txt: Math.round(p) + '%', color: p > cfg.ralenti.metaPct ? '#B3312C' : '#4E9461' }; }) }) +
       '<div class="pie-n">Barras: km recorridos. Ralentí: % del tiempo con motor encendido sin avanzar; en rojo cuando pasa la meta de ' + cfg.ralenti.metaPct + '%.</div></div>' +
@@ -656,17 +689,29 @@ function renderSemana(e){
     '<div class="pie"><span>Fuente: telemetría MyGeotab y control de viajes</span><span>2 de 2</span></div></div>';
 
   /* detalle interactivo (no va al PDF) */
-  var det = '<div class="caja detalle"><h2 class="sec">Detalle para investigar</h2><p class="nota" style="margin-top:0">Incluye reglas en “Solo mostrar”. No sale en el PDF.</p>' +
+  var det = '<div class="caja detalle" style="margin-top:14px"><h2 class="sec">Detalle de la evaluación: ' + esc(u.eco) + ', ' + rangoTxt(e.desde, fin) + '</h2><p class="nota" style="margin-top:0">Para investigar: incluye las reglas en “Solo mostrar”. No sale en el PDF.</p>' +
     (e.exc.length || e.eventos.length ? '<div class="scroll"><table class="t2"><thead><tr><th>Evento</th><th>Fecha y hora</th><th>Detalle</th><th>En la evaluación</th><th></th></tr></thead><tbody>' +
       e.exc.map(function(x){ var k = x.lat != null ? x.lat.toFixed(4) + ',' + x.lon.toFixed(4) : ''; return '<tr><td><b>Exceso de velocidad</b></td><td>' + fechaHora(x.ini) + '</td><td>' + x.max + ' km/h, ' + minTxt(x.dur / 60) + (direcciones[k] ? ', ' + esc(direcciones[k]) : '') + '</td><td>' + (x.grave ? '<span class="etq c-mal">grave</span>' : '<span class="etq c-reg">califica</span>') + '</td><td>' + btnMapa(x.ini, x.fin) + '</td></tr>'; }).join('') +
       e.eventos.map(function(x){ return '<tr><td><b>' + esc(x.regla.nombre) + '</b><br><span class="nota">' + esc(x.regla.fuente) + '</span></td><td>' + fechaHora(x.ini) + '</td><td>' + (x.dur ? Math.round(x.dur) + ' s' : '') + '</td><td>' + (x.regla.estado === 'c' ? '<span class="etq c-mal">califica</span>' : '<span class="etq c-na">solo mostrar</span>') + '</td><td>' + btnMapa(x.ini, new Date(x.ini.getTime() + Math.max(x.dur, 60) * 1000)) + '</td></tr>'; }).join('') +
-      '</tbody></table></div>' : '<div class="vacio">Sin eventos en la semana.</div>') +
+      '</tbody></table></div>' : '<div class="vacio">Sin eventos en el periodo.</div>') +
     (e.viajes.length ? '<h2 class="sec" style="margin-top:14px">Viajes: control contra GPS</h2><div class="scroll"><table class="t2"><thead><tr><th>Viaje</th><th>Geocerca origen / destino</th><th>Llegada origen control / GPS</th><th>Tránsito</th><th>Fuente</th></tr></thead><tbody>' +
       e.viajes.map(function(v){ var dif = v.llegC && v.llegG ? Math.round((v.llegC - v.llegG) / 60000) : null; return '<tr><td><b>' + esc(v.rkt) + '</b><br><span class="nota">' + esc(v.cliente + ', ' + v.ruta) + '</span></td><td>' + esc(v.zO || 'sin geocerca') + '<br>' + esc(v.zD || 'sin geocerca') + '</td><td>' + (v.llegC ? hora(v.llegC) : '—') + ' / ' + (v.llegG ? hora(v.llegG) : '—') + (dif != null && Math.abs(dif) > 15 ? '<br><span class="rojo">diferencia ' + dif + ' min</span>' : '') + '</td><td>' + hm(v.trans) + '</td><td>' + v.fuente + '</td></tr>'; }).join('') +
       '</tbody></table></div>' : '') + '</div>';
 
-  $('#eo-reporteSemana').innerHTML = '<div class="hojas" id="eo-hojasSemana">' + p1 + p2 + '</div><div style="margin-top:16px">' + det + '</div>';
+  $('#eo-reporteSemana').innerHTML = '<div class="hojas" id="eo-hojasSemana">' + p1 + p2 + '</div>';
+  $('#eo-detalle').innerHTML = det;
+  pintarPeriodoViajes(e);
   completarDirecciones(e);
+}
+function pintarPeriodoViajes(e){
+  var c = e.clasif, fin = masDias(e.hasta, -1);
+  if (!c.length){ $('#eo-periodoViajes').innerHTML = ''; return; }
+  var dentro = c.filter(function(x){ return x.entra; }).length;
+  $('#eo-periodoViajes').innerHTML = '<div class="caja" style="margin-top:14px"><h2 class="sec">Viajes del control en el periodo ' + corto(e.desde) + ' al ' + corto(fin) + '</h2>' +
+    '<p class="nota" style="margin-top:0">Corte por <b>' + (cfg.periodo.corte === 'arribo' ? 'fecha de arribo a destino' : 'fecha de carga') + '</b> (se cambia en Reglas y metas). Entran <b>' + dentro + '</b>, brincan <b>' + (c.length - dentro) + '</b>.</p>' +
+    '<div class="scroll"><table class="t2"><thead><tr><th>Viaje</th><th>Cliente y ruta</th><th>Carga</th><th>Arribo destino</th><th>¿Entra en este periodo?</th></tr></thead><tbody>' +
+    c.map(function(x){ var f = x.f; return '<tr' + (x.entra ? '' : ' style="background:#FFFBF5"') + '><td><b>' + esc(f.rkt) + '</b></td><td>' + esc(f.cliente + ', ' + f.origen + ' – ' + f.destino) + '</td><td>' + (f.salO ? fechaHora(f.salO) : diaTxt(f.fecha)) + '</td><td>' + (f.arrD ? fechaHora(f.arrD) : '—') + '</td><td>' + (x.entra ? '<span class="chip c-bien">Entra</span> ' : '<span class="chip c-reg">Brinca</span> ') + '<span class="nota">' + esc(x.motivo) + '</span></td></tr>'; }).join('') +
+    '</tbody></table></div></div>';
 }
 function servicioTxt(e){
   if (!e.viajes.length) return e.controlError ? 'Sin control de viajes' : 'Sin viajes en el control';
@@ -687,12 +732,16 @@ function completarDirecciones(e){
 }
 
 function generarSemana(){
-  if (!unidadSel){ estado('Elige una unidad de la lista.', true); return Promise.resolve(); }
-  var desde = lunes(deYmd($('#eo-semana').value)); $('#eo-semana').value = ymd(desde);
-  $('#eo-btnGenerar').disabled = true; $('#eo-btnGuardar').disabled = true; $('#eo-btnPdf').disabled = true;
+  if (!unidadSel){ estado('Elige una unidad.', true); return Promise.resolve(); }
+  if (!$('#eo-desde').value || !$('#eo-hasta').value){ estado('Elige las fechas de inicio y fin del periodo.', true); return Promise.resolve(); }
+  var desde = deYmd($('#eo-desde').value), hasta = masDias(deYmd($('#eo-hasta').value), 1);
+  if (hasta <= desde){ estado('La fecha de fin debe ser igual o posterior a la de inicio.', true); return Promise.resolve(); }
+  if ((hasta - desde) / 86400000 > 35){ estado('El periodo no puede ser mayor a 35 días.', true); return Promise.resolve(); }
+  $('#eo-btnGenerar').disabled = true; $('#eo-btnGuardar').disabled = true; $('#eo-btnPdf').disabled = true; $('#eo-btnDetalle').disabled = true;
+  verDetalle(false);
   estado('Consultando ' + unidadSel.eco + ': viajes, velocidad, eventos, combustible y control de viajes…');
   var u = unidadSel;
-  return datosSemana(u, desde).then(function(d){
+  return datosSemana(u, desde, hasta).then(function(d){
     var op = $('#eo-operador');
     if (op.dataset.auto !== '0'){
       var cuenta = {}; d.filas.forEach(function(f){ if (f.operador) cuenta[f.operador] = (cuenta[f.operador] || 0) + 1; });
@@ -701,24 +750,38 @@ function generarSemana(){
       $('#eo-operadorNota').textContent = top ? 'Del control de viajes (' + d.filas.length + ' viajes).' + (u.operadorMyG && norm(u.operadorMyG) !== norm(top) ? ' En MyGeotab la unidad dice “' + u.nombre + '”.' : '') : u.operadorMyG ? 'Del nombre de la unidad en MyGeotab.' : 'Escribe el nombre del operador.';
     }
     var guardada = historial.find(function(h){ return h.deviceId === u.id && h.semana === ymd(desde); });
-    if (guardada && guardada.cual){ $('#eo-qInstr').value = guardada.cual.instr; $('#eo-qMultas').value = guardada.cual.multas; $('#eo-qDanios').value = guardada.cual.danios; $('#eo-qMtto').value = guardada.cual.mtto; }
-    ultimaEval = evaluar(u, desde, d, leerCual(), op.value.trim());
+    if (guardada && guardada.cual) ponerCual(guardada.cual);
+    ultimaEval = evaluar(u, desde, hasta, d, leerCual(), op.value.trim());
     ultimaEval._datos = d;
     renderSemana(ultimaEval);
-    estado(u.eco + ': ' + d.trips.length + ' viajes de GPS, ' + d.filas.length + ' viajes en el control' + (d.control.error ? ' (' + d.control.error + ')' : '') + (guardada ? '. Ya hay una evaluación guardada de esta semana; si guardas, se reemplaza.' : '.'), !!d.control.error);
-    $('#eo-btnGuardar').disabled = false; $('#eo-btnPdf').disabled = false;
+    estado(u.eco + ': ' + d.trips.length + ' viajes de GPS, ' + d.filas.length + ' viajes del control entran en el periodo' + (d.control.error ? ' (' + d.control.error + ')' : '') + (guardada ? '. Ya hay una evaluación guardada de este periodo; si guardas, se reemplaza.' : '.'), !!d.control.error);
+    $('#eo-btnGuardar').disabled = false; $('#eo-btnPdf').disabled = false; $('#eo-btnDetalle').disabled = false;
   }).catch(function(err){ console.error(err); estado('No se pudo consultar MyGeotab: ' + (err && err.message ? err.message : err), true); })
     .then(function(){ $('#eo-btnGenerar').disabled = false; });
 }
-function leerCual(){ return { instr: $('#eo-qInstr').value, multas: Math.max(0, +$('#eo-qMultas').value || 0), danios: Math.max(0, +$('#eo-qDanios').value || 0), mtto: $('#eo-qMtto').value }; }
-function recalcular(){ if (!ultimaEval) return; var d = ultimaEval._datos; ultimaEval = evaluar(ultimaEval.u, ultimaEval.desde, d, leerCual(), $('#eo-operador').value.trim()); ultimaEval._datos = d; renderSemana(ultimaEval); }
-
+function verDetalle(mostrar){
+  var det = $('#eo-detalle'), rep = $('#eo-reporteSemana'), b = $('#eo-btnDetalle');
+  det.classList.toggle('oculto', !mostrar); rep.classList.toggle('oculto', !!mostrar);
+  b.textContent = mostrar ? 'Ver reporte' : 'Ver detalle'; b.dataset.on = mostrar ? '1' : '';
+}
+function leerCual(){
+  return { faltas: $$('.eo-falta').filter(function(c){ return c.checked; }).map(function(c){ return c.value; }), otro: $('#eo-faltaOtroTxt').value.trim(),
+           multas: Math.max(0, +$('#eo-qMultas').value || 0), danios: Math.max(0, +$('#eo-qDanios').value || 0), mtto: $('#eo-qMtto').value };
+}
+function ponerCual(c){
+  var f = c.faltas || (c.instr === 'no' ? ['Otro'] : []);
+  $$('.eo-falta').forEach(function(x){ x.checked = f.indexOf(x.value) >= 0; });
+  $('#eo-faltaOtroTxt').value = c.otro || (c.instr === 'no' ? 'No siguió instrucciones' : '');
+  $('#eo-qMultas').value = c.multas || 0; $('#eo-qDanios').value = c.danios || 0; $('#eo-qMtto').value = c.mtto || 'si';
+}
+function limpiarCual(){ ponerCual({ faltas: [], multas: 0, danios: 0, mtto: 'si' }); }
+function recalcular(){ if (!ultimaEval) return; var d = ultimaEval._datos, det = $('#eo-btnDetalle').dataset.on; ultimaEval = evaluar(ultimaEval.u, ultimaEval.desde, ultimaEval.hasta, d, leerCual(), $('#eo-operador').value.trim()); ultimaEval._datos = d; renderSemana(ultimaEval); verDetalle(!!det); }
 function guardarSemana(){
   var e = ultimaEval; if (!e) return;
   if (!e.operador){ toast('Escribe el nombre del operador antes de guardar.'); $('#eo-operador').focus(); return; }
   var g = {}; e.items.forEach(function(it){ g[it.grupo] = (g[it.grupo] || 0) + it.n; });
   var reg = {
-    tipo: 'eval', v: 1, semana: ymd(e.desde), mes: mesDeSemana(e.desde), deviceId: e.u.id, eco: e.u.eco, unidad: e.u.nombre, tipoUnidad: e.u.tipo,
+    tipo: 'eval', v: 2, semana: ymd(e.desde), hasta: ymd(masDias(e.hasta, -1)), dias: e.nD, mes: mesDeSemana(e.desde, e.nD), deviceId: e.u.id, eco: e.u.eco, unidad: e.u.nombre, tipoUnidad: e.u.tipo,
     operador: e.operador, opClave: norm(e.operador), total: e.total, comision: e.com.pct,
     rubros: { seguridad: r1(e.rubros.seguridad), rendimientos: r1(e.rubros.rendimientos), servicio: r1(e.rubros.servicio), cualitativo: r1(e.rubros.cualitativo) },
     km: Math.round(e.km), litros: e.litros == null ? null : Math.round(e.litros * 10) / 10, kml: e.kml == null ? null : Math.round(e.kml * 100) / 100,
@@ -792,17 +855,17 @@ function verMes(){
   if (A) Object.keys(NOM).forEach(function(k){ var a = A.rubros[k], b = R.rubros[k]; if (a == null || b == null) return; var dd = b - a; if (dd >= 3) mejoro.push(NOM[k] + ': de ' + Math.round(a) + ' a <b>' + Math.round(b) + '</b> pts'); else if (dd <= -3) empeoro.push(NOM[k] + ': de ' + Math.round(a) + ' a <b>' + Math.round(b) + '</b> pts'); });
   if (A && A.kml != null && R.kml != null){ var dk = R.kml - A.kml; if (dk >= 0.1) mejoro.push('Rendimiento: de ' + n1(A.kml) + ' a <b>' + n1(R.kml) + ' km/L</b>'); else if (dk <= -0.1) empeoro.push('Rendimiento: de ' + n1(A.kml) + ' a <b>' + n1(R.kml) + ' km/L</b>'); }
   if (A){ Object.keys(GRUPOS).forEach(function(k){ var a = A.porGrupo[k] || 0, b = R.porGrupo[k] || 0; if (b < a) mejoro.push(GRUPOS[k] + ': de ' + a + ' a <b>' + b + '</b> incidencias'); else if (b > a) empeoro.push(GRUPOS[k] + ': de ' + a + ' a <b>' + b + '</b> incidencias'); }); }
-  var etq = ws.map(function(w){ var d = deYmd(w.semana); return 'Sem ' + semanaISO(d) + ' (' + d.getDate() + ' ' + MES3[d.getMonth()] + ')'; });
+  var etq = ws.map(function(w){ var d = deYmd(w.semana), f = w.hasta ? deYmd(w.hasta) : masDias(d, 6); return corto(d) + ' – ' + corto(f); });
   var html = '<div class="hojas" id="eo-hojasMes"><div class="hoja">' + cabecera('rocketlogistics.xyz', 'SOLUCIONES DE TRANSPORTE Y LOGÍSTICA · Evaluación mensual · ' + mesTxt(mes)) +
-    '<div class="h-tit"><h1>Evaluación mensual – ' + esc(nombre) + '</h1><div>' + (mesModo === 'op' ? 'Unidades: ' + esc(unidadesUsadas) : 'Operadores: ' + esc(operadoresUsados)) + '  |  ' + mesTxt(mes) + '  |  ' + ws.length + ' semanas evaluadas, ' + R.viajes + ' viajes  |  Emisión: ' + ymd(new Date()) + '</div></div>' +
+    '<div class="h-tit"><h1>Evaluación mensual – ' + esc(nombre) + '</h1><div>' + (mesModo === 'op' ? 'Unidades: ' + esc(unidadesUsadas) : 'Operadores: ' + esc(operadoresUsados)) + '  |  ' + mesTxt(mes) + '  |  ' + ws.length + ' periodos evaluados, ' + R.viajes + ' viajes  |  Emisión: ' + ymd(new Date()) + '</div></div>' +
     '<div class="kpis">' + kpi('#3E64B4', Math.round(R.total) + ' <small>de 100</small>', 'calificación del mes (promedio)') +
       kpi('#4A8DA3', dif == null ? 'Primer mes' : (dif >= 0 ? '+' : '') + Math.round(dif) + ' pts', dif == null ? 'sin mes anterior guardado' : 'contra ' + mesTxt(mesAnterior(mes)), dif == null ? '#3F7F94' : dif >= 0 ? '#4E9461' : '#B3312C') +
       kpi('#5CA36E', R.kml == null ? 'Sin dato' : n1(R.kml) + ' km/L', 'rendimiento del mes (meta ' + n1(tipoMeta.kml) + ')', '#4E9461') + kpi('#B3312C', R.incidencias, 'incidencias de seguridad') + '</div>' +
     '<div class="h-sec"><h2>Cómo te fue contra el mes anterior</h2>' + (A ? ((mejoro.length ? '<div><b style="color:#4E9461">Mejoró</b><ul>' + mejoro.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ul></div>' : '') + (empeoro.length ? '<div><b style="color:#B3312C">Empeoró</b><ul>' + empeoro.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ul></div>' : '') + (!mejoro.length && !empeoro.length ? '<div>Sin cambios importantes contra ' + mesTxt(mesAnterior(mes)) + '.</div>' : '')) : '<div>No hay evaluaciones guardadas de ' + mesTxt(mesAnterior(mes)) + ' para comparar.</div>') + '</div>' +
-    '<div class="h-sec"><h2>Semana por semana</h2><table class="t"><thead><tr><th>Semana</th><th>' + (mesModo === 'op' ? 'Unidad' : 'Operador') + '</th><th class="der">Seguridad</th><th class="der">Rend.</th><th class="der">Servicio</th><th class="der">Cualit.</th><th class="der">km/L</th><th class="der">Total</th><th class="der">Comisión</th></tr></thead><tbody>' +
+    '<div class="h-sec"><h2>Periodo por periodo</h2><table class="t"><thead><tr><th>Periodo</th><th>' + (mesModo === 'op' ? 'Unidad' : 'Operador') + '</th><th class="der">Seguridad</th><th class="der">Rend.</th><th class="der">Servicio</th><th class="der">Cualit.</th><th class="der">km/L</th><th class="der">Total</th><th class="der">Comisión</th></tr></thead><tbody>' +
       ws.map(function(w, i){ return '<tr><td>' + etq[i] + '</td><td>' + esc(mesModo === 'op' ? w.eco : w.operador) + '</td>' + ['seguridad', 'rendimientos', 'servicio', 'cualitativo'].map(function(k){ return puntosTd(w.rubros[k]); }).join('') + '<td class="der">' + (w.kml == null ? '—' : n1(w.kml)) + '</td>' + puntosTd(w.total) + '<td class="der">' + w.comision + '%</td></tr>'; }).join('') +
       '<tr class="tot"><td>Mes</td><td></td>' + ['seguridad', 'rendimientos', 'servicio', 'cualitativo'].map(function(k){ return '<td class="der">' + (R.rubros[k] == null ? '—' : Math.round(R.rubros[k])) + '</td>'; }).join('') + '<td class="der">' + (R.kml == null ? '—' : n1(R.kml)) + '</td><td class="der">' + Math.round(R.total) + '</td><td class="der">' + R.conDescuento + ' con desc.</td></tr></tbody></table></div>' +
-    '<div class="h-sec"><h2>Calificación semanal</h2>' + grafLinea({ etiquetas: etq, ymax: 100, ytxt: 'puntos', ref: A ? Math.round(A.total) : null, refTxt: A ? 'promedio ' + MES3[+mesAnterior(mes).split('-')[1] - 1] + ': ' + Math.round(A.total) : '', aria: 'Calificación por semana del mes', alto: 240,
+    '<div class="h-sec"><h2>Calificación por periodo</h2>' + grafLinea({ etiquetas: etq, ymax: 100, ytxt: 'puntos', ref: A ? Math.round(A.total) : null, refTxt: A ? 'promedio ' + MES3[+mesAnterior(mes).split('-')[1] - 1] + ': ' + Math.round(A.total) : '', aria: 'Calificación por semana del mes', alto: 240,
       series: [{ nombre: 'Total', color: '#3E64B4', marca: 'c', valores: ws.map(function(w){ return w.total; }) }, { nombre: 'Seguridad', color: '#5CA36E', marca: 's', valores: ws.map(function(w){ return w.rubros.seguridad == null ? null : Math.round(w.rubros.seguridad); }) }] }) + '</div>' +
     '<div class="firmas"><div>Firma del operador</div><div>Firma del supervisor</div></div>' +
     '<div class="pie"><span>Fuente: evaluaciones semanales guardadas en MyGeotab</span><span>1 de 1</span></div></div></div>';
@@ -817,17 +880,18 @@ function verMes(){
 var tend = { modo: 'op', per: 'sem', sel: null };
 function columnasTend(){
   var cols = [];
-  if (tend.per === 'sem'){ var l = lunes(new Date()); for (var i = 12; i >= 1; i--){ var d = masDias(l, -7 * i); cols.push({ k: ymd(d), etq: 'S' + semanaISO(d), sub: d.getDate() + ' ' + MES3[d.getMonth()] }); } }
+  if (tend.per === 'sem'){ var a = inicioPeriodo(new Date()); for (var i = 12; i >= 1; i--){ var d = masDias(a, -7 * i), f = masDias(d, 6); cols.push({ k: ymd(d), fin: ymd(masDias(d, 7)), etq: corto(d), sub: 'al ' + corto(f) }); } }
   else { var h = new Date(); for (var j = 6; j >= 1; j--){ var m = new Date(h.getFullYear(), h.getMonth() - j + 1, 1); cols.push({ k: m.getFullYear() + '-' + String(m.getMonth() + 1).padStart(2, '0'), etq: MES3[m.getMonth()], sub: String(m.getFullYear()) }); } }
   return cols;
 }
+function enCol(h, c){ return tend.per === 'sem' ? (h.semana >= c.k && h.semana < c.fin) : h.mes === c.k; }
 function valorTend(clave, col){
-  var ws = historial.filter(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === clave && (tend.per === 'sem' ? h.semana === col.k : h.mes === col.k); });
+  var ws = historial.filter(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === clave && enCol(h, col); });
   return ws.length ? promedio(ws.map(function(w){ return w.total; })) : null;
 }
 function pintarTend(){
   var ents = entidades(tend.modo), cols = columnasTend();
-  if (!ents.length){ $('#eo-tendTabla').innerHTML = '<div class="vacio">Aún no hay evaluaciones guardadas. Guarda evaluaciones semanales y aquí verás la mejora o el empeoramiento por semana y por mes.</div>'; $('#eo-tendGraf').innerHTML = ''; return; }
+  if (!ents.length){ $('#eo-tendTabla').innerHTML = '<div class="vacio">Aún no hay evaluaciones guardadas. Guarda evaluaciones y aquí verás la mejora o el empeoramiento por periodo y por mes.</div>'; $('#eo-tendGraf').innerHTML = ''; return; }
   if (!tend.sel || !ents.some(function(e){ return e.clave === tend.sel; })) tend.sel = ents[0].clave;
   var filas = ents.map(function(e){
     var vals = cols.map(function(c){ return valorTend(e.clave, c); }), hay = vals.filter(function(v){ return v != null; });
@@ -845,9 +909,9 @@ function pintarTend(){
   var ent = ents.find(function(e){ return e.clave === tend.sel; });
   var rub = { seguridad: '#5CA36E', rendimientos: '#4A8DA3', servicio: '#B07A00', cualitativo: '#8E6BB4' };
   var series = [{ nombre: 'Total', color: '#3E64B4', marca: 'c', valores: cols.map(function(c){ var v = valorTend(tend.sel, c); return v == null ? null : Math.round(v); }) }];
-  Object.keys(rub).forEach(function(k){ series.push({ nombre: k.charAt(0).toUpperCase() + k.slice(1), color: rub[k], marca: 's', valores: cols.map(function(c){ var ws = historial.filter(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === tend.sel && (tend.per === 'sem' ? h.semana === c.k : h.mes === c.k); }); var v = promedio(ws.map(function(w){ return w.rubros[k]; })); return v == null ? null : Math.round(v); }) }); });
-  var kml = cols.map(function(c){ var ws = historial.filter(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === tend.sel && (tend.per === 'sem' ? h.semana === c.k : h.mes === c.k) && h.litros; }); var km = ws.reduce(function(s, w){ return s + w.km; }, 0), lt = ws.reduce(function(s, w){ return s + w.litros; }, 0); return lt ? Math.round(km / lt * 100) / 100 : null; });
-  $('#eo-tendGraf').innerHTML = '<h2 class="sec">' + esc(ent.nombre) + ': calificación por ' + (tend.per === 'sem' ? 'semana' : 'mes') + '</h2>' +
+  Object.keys(rub).forEach(function(k){ series.push({ nombre: k.charAt(0).toUpperCase() + k.slice(1), color: rub[k], marca: 's', valores: cols.map(function(c){ var ws = historial.filter(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === tend.sel && enCol(h, c); }); var v = promedio(ws.map(function(w){ return w.rubros[k]; })); return v == null ? null : Math.round(v); }) }); });
+  var kml = cols.map(function(c){ var ws = historial.filter(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === tend.sel && enCol(h, c) && h.litros; }); var km = ws.reduce(function(s, w){ return s + w.km; }, 0), lt = ws.reduce(function(s, w){ return s + w.litros; }, 0); return lt ? Math.round(km / lt * 100) / 100 : null; });
+  $('#eo-tendGraf').innerHTML = '<h2 class="sec">' + esc(ent.nombre) + ': calificación por ' + (tend.per === 'sem' ? 'periodo' : 'mes') + '</h2>' +
     grafLinea({ etiquetas: cols.map(function(c){ return c.etq + ' ' + c.sub.replace(/^\d{4}$/, ''); }), ymax: 100, ytxt: 'puntos', ref: 90, refTxt: '90 = comisión completa', aria: 'Tendencia de calificación', series: series }) +
     '<h2 class="sec" style="margin-top:14px">Rendimiento de combustible (km/L)</h2>' +
     grafLinea({ etiquetas: cols.map(function(c){ return c.etq; }), ytxt: 'km/L', aria: 'Tendencia de rendimiento', alto: 220, ref: (cfg.tipos[(historial.find(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === tend.sel; }) || {}).tipoUnidad] || cfg.tipos.T).kml, refTxt: 'meta', series: [{ nombre: 'km/L', color: '#5CA36E', marca: 's', valores: kml }] });
@@ -905,10 +969,18 @@ function guardarGeo(){
 function pintarReglas(){
   var seg = function(id, e){ return '<div class="seg" role="group" aria-label="Estado"><button class="c" data-regla="' + id + '" data-v="c" aria-pressed="' + (e === 'c') + '">Califica</button><button class="m" data-regla="' + id + '" data-v="m" aria-pressed="' + (e === 'm') + '">Solo mostrar</button><button class="a" data-regla="' + id + '" data-v="a" aria-pressed="' + (e === 'a') + '">Apagada</button></div>'; };
   var h = '<h3 style="margin:0 0 6px;color:#3E64B4">Seguridad</h3><div class="scroll"><table class="t2"><thead><tr><th>Grupo</th><th>Regla</th><th>Fuente</th><th>En la evaluación</th><th>Cuenta</th><th>Puntos</th></tr></thead><tbody>' +
-    '<tr><td>Velocidad</td><td><b>Exceso sobre el límite por tipo</b><br><span class="nota">Calculado del GPS (no depende de una regla)</span></td><td>Telemetría</td><td>' + seg('__vel', cfg.velocidad.estado) + '</td><td>por evento</td><td><input type="number" min="0" data-pts="__vel" value="' + cfg.velocidad.puntos + '" style="width:64px;min-height:32px"> +' + cfg.velocidad.extraGrave + ' si pasa ' + cfg.velocidad.margenGrave + ' km/h</td></tr>' +
-    cfg.reglas.map(function(r){ return '<tr style="' + (r.estado === 'a' ? 'opacity:.55' : '') + '"><td>' + GRUPOS[r.grupo] + '</td><td><b>' + esc(r.nombre) + '</b><br><span class="nota">' + esc(r.id) + '</span></td><td>' + esc(r.fuente) + '</td><td>' + seg(r.id, r.estado) + '</td><td><select data-cuenta="' + r.id + '" style="min-height:32px"><option value="evento"' + (r.cuenta === 'evento' ? ' selected' : '') + '>por evento</option><option value="dia"' + (r.cuenta === 'dia' ? ' selected' : '') + '>por día</option></select></td><td><input type="number" min="0" data-pts="' + r.id + '" value="' + r.puntos + '" style="width:64px;min-height:32px"></td></tr>'; }).join('') +
+    '<tr><td>Velocidad</td><td><b>Exceso sobre el límite por tipo (cálculo del add-in)</b><br><span class="nota">Si prefieres tus reglas de velocidad de MyGeotab, apaga esta y agrégalas abajo con grupo Velocidad</span></td><td>Telemetría</td><td>' + seg('__vel', cfg.velocidad.estado) + '</td><td>por evento</td><td><input type="number" min="0" data-pts="__vel" value="' + cfg.velocidad.puntos + '" style="width:64px;min-height:32px"> +' + cfg.velocidad.extraGrave + ' si pasa ' + cfg.velocidad.margenGrave + ' km/h</td></tr>' +
+    cfg.reglas.map(function(r){ return '<tr style="' + (r.estado === 'a' ? 'opacity:.55' : '') + '"><td>' + GRUPOS[r.grupo] + '</td><td><b>' + esc(r.nombre) + '</b><br><span class="nota">' + esc(r.id) + '</span>' + (r.extra ? ' <button class="btn-mapa" data-quitar="' + esc(r.id) + '">Quitar</button>' : '') + '</td><td>' + esc(r.fuente) + '</td><td>' + seg(r.id, r.estado) + '</td><td><select data-cuenta="' + r.id + '" style="min-height:32px"><option value="evento"' + (r.cuenta === 'evento' ? ' selected' : '') + '>por evento</option><option value="dia"' + (r.cuenta === 'dia' ? ' selected' : '') + '>por día</option></select></td><td><input type="number" min="0" data-pts="' + r.id + '" value="' + r.puntos + '" style="width:64px;min-height:32px"></td></tr>'; }).join('') +
     cfg.pendientes.map(function(p){ return '<tr style="background:#FFFBF5"><td>Cámara obstruida o tapada</td><td><b>' + esc(p.nombre) + '</b></td><td>' + esc(p.fuente) + '</td><td colspan="3"><span class="chip c-mal">Pendiente</span> <span class="nota">' + esc(p.motivo) + '</span></td></tr>'; }).join('') +
     '</tbody></table></div><p class="nota">Las reglas que cuentan “por día” del mismo grupo se juntan: un día con cinturón detectado por varias fuentes cuenta una sola vez.</p>' +
+    '<h3 style="margin:16px 0 6px;color:#3E64B4">Agregar una regla de MyGeotab</h3><div class="campos">' +
+    '<label class="campo" style="flex:3 1 300px">Regla<select id="eo-nuevaRegla">' + (reglasMyG ? '<option value="">Elige una regla…</option>' + reglasMyG.filter(function(r){ return !cfg.reglas.some(function(x){ return x.id === r.id; }); }).map(function(r){ return '<option value="' + esc(r.id) + '">' + esc(r.name) + '</option>'; }).join('') : '<option value="">Cargando reglas…</option>') + '</select></label>' +
+    '<label class="campo">Grupo<select id="eo-nuevaGrupo">' + Object.keys(GRUPOS).map(function(g){ return '<option value="' + g + '">' + GRUPOS[g] + '</option>'; }).join('') + '</select></label>' +
+    '<label class="campo" style="flex:0 1 110px">Puntos<input type="number" id="eo-nuevaPts" value="5" min="0"></label>' +
+    '<div class="acciones"><button class="btn btn-s" id="eo-btnAgregarRegla">Agregar</button></div></div>' +
+    '<h3 style="margin:16px 0 6px;color:#3E64B4">Periodo de evaluación</h3><div class="campos">' +
+    '<label class="campo" style="flex:0 1 220px">Corte de viajes por<select id="eo-corte"><option value="carga"' + (cfg.periodo.corte === 'carga' ? ' selected' : '') + '>Fecha de carga</option><option value="arribo"' + (cfg.periodo.corte === 'arribo' ? ' selected' : '') + '>Fecha de arribo a destino</option></select></label>' +
+    '<label class="campo" style="flex:0 1 220px">Día de inicio del periodo<select id="eo-diaInicio">' + ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'].map(function(n, i){ return '<option value="' + i + '"' + (cfg.periodo.diaInicio === i ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label></div>' +
     '<h3 style="margin:16px 0 6px;color:#3E64B4">Metas por tipo de unidad</h3><div class="scroll"><table class="t2"><thead><tr><th>Tipo</th><th>Nombre</th><th>Vel. máx. (km/h)</th><th>Rendimiento meta (km/L)</th><th>Km por semana</th></tr></thead><tbody>' +
     Object.keys(cfg.tipos).map(function(k){ var t = cfg.tipos[k]; return '<tr><td><b>' + k + '</b></td><td><input data-tipo="' + k + '" data-c="nombre" value="' + esc(t.nombre) + '" style="min-height:32px;width:110px"></td><td><input type="number" data-tipo="' + k + '" data-c="vmax" value="' + t.vmax + '" style="min-height:32px;width:80px"></td><td><input type="number" step="0.1" data-tipo="' + k + '" data-c="kml" value="' + t.kml + '" style="min-height:32px;width:80px"></td><td><input type="number" data-tipo="' + k + '" data-c="kmSemana" value="' + t.kmSemana + '" style="min-height:32px;width:90px"></td></tr>'; }).join('') +
     '</tbody></table></div>' +
@@ -917,17 +989,24 @@ function pintarReglas(){
     '<label class="campo" style="flex:0 1 160px">Ralentí meta (%)<input type="number" data-ral="metaPct" value="' + cfg.ralenti.metaPct + '"></label></div>' +
     '<p class="nota">Escala de comisión: ' + cfg.comision.map(function(c){ return c.min + '+ pts = ' + c.pct + '%'; }).join(', ') + '.</p>';
   $('#eo-reglasCont').innerHTML = h;
+  if (!reglasMyG) llamar('Get', { typeName: 'Rule', propertySelector: { fields: ['id', 'name', 'baseType'], isIncluded: true } }).then(function(rs){
+    reglasMyG = (rs || []).filter(function(r){ return r.baseType !== 'ZoneStop' && r.name; }).sort(function(a, b){ return a.name.localeCompare(b.name); });
+    pintarReglas();
+  }).catch(function(){ reglasMyG = []; pintarReglas(); });
 }
+var reglasMyG = null;
 function leerReglasForm(){
   $$('#eo-reglasCont input[data-pts]').forEach(function(i){ var v = Math.max(0, +i.value || 0); if (i.dataset.pts === '__vel') cfg.velocidad.puntos = v; else { var r = cfg.reglas.find(function(x){ return x.id === i.dataset.pts; }); if (r) r.puntos = v; } });
   $$('#eo-reglasCont select[data-cuenta]').forEach(function(s){ var r = cfg.reglas.find(function(x){ return x.id === s.dataset.cuenta; }); if (r) r.cuenta = s.value; });
   $$('#eo-reglasCont input[data-tipo]').forEach(function(i){ var t = cfg.tipos[i.dataset.tipo]; t[i.dataset.c] = i.dataset.c === 'nombre' ? i.value : +i.value; });
   $$('#eo-reglasCont input[data-peso]').forEach(function(i){ cfg.pesos[i.dataset.peso] = +i.value || 0; });
   $$('#eo-reglasCont input[data-ral]').forEach(function(i){ cfg.ralenti[i.dataset.ral] = +i.value || 0; });
+  if ($('#eo-corte')) cfg.periodo.corte = $('#eo-corte').value;
+  if ($('#eo-diaInicio')) cfg.periodo.diaInicio = +$('#eo-diaInicio').value;
 }
 function guardarReglas(){
   leerReglasForm();
-  var reg = { tipo: 'config', cfg: { pesos: cfg.pesos, tipos: cfg.tipos, velocidad: cfg.velocidad, ralenti: cfg.ralenti, reglas: cfg.reglas }, guardadoEl: new Date().toISOString() };
+  var reg = { tipo: 'config', cfg: { pesos: cfg.pesos, tipos: cfg.tipos, velocidad: cfg.velocidad, ralenti: cfg.ralenti, reglas: cfg.reglas, periodo: cfg.periodo, cualitativo: cfg.cualitativo }, guardadoEl: new Date().toISOString() };
   $('#eo-btnReglasGuardar').disabled = true;
   guardarDato(reg, cfgRegistro).then(function(id){ cfgRegistro = id; toast('Configuración guardada. Aplica a las siguientes evaluaciones.'); recalcular(); })
     .catch(function(e){ toast('No se pudo guardar: ' + (e.message || e)); }).then(function(){ $('#eo-btnReglasGuardar').disabled = false; });
@@ -947,19 +1026,22 @@ function verTab(t){
 function toggle(id, fn){ $(id).addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; $$(id + ' button').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); }); fn(b.dataset.v); }); }
 function enlazar(){
   $$('.tab').forEach(function(b){ b.addEventListener('click', function(){ verTab(b.dataset.tab); }); });
-  $('#eo-buscar').addEventListener('input', pintarUnidades);
-  $('#eo-semana').addEventListener('change', function(){ $('#eo-semana').value = ymd(lunes(deYmd($('#eo-semana').value))); pintarUnidades(); });
-  $('#eo-listaUnidades').addEventListener('click', function(e){
-    var b = e.target.closest('.uni'); if (!b) return;
-    unidadSel = unidades.find(function(u){ return u.id === b.dataset.id; }); $('#eo-operador').dataset.auto = '1'; ['#eo-qMultas', '#eo-qDanios'].forEach(function(s){ $(s).value = 0; }); $('#eo-qInstr').value = 'si'; $('#eo-qMtto').value = 'si';
-    pintarUnidades(); generarSemana();
+  $('#eo-unidad').addEventListener('change', function(){
+    unidadSel = unidades.find(function(u){ return u.id === $('#eo-unidad').value; }) || null;
+    $('#eo-operador').dataset.auto = '1'; limpiarCual();
+    if (unidadSel) generarSemana();
   });
+  $('#eo-desde').addEventListener('change', function(){ var d = deYmd($('#eo-desde').value); $('#eo-hasta').value = ymd(masDias(d, 6)); pintarUnidades(); });
+  $('#eo-hasta').addEventListener('change', pintarUnidades);
+  $('#eo-btnDetalle').addEventListener('click', function(){ verDetalle(!this.dataset.on); });
+  $('#eo-faltaOtroTxt').addEventListener('input', function(){ $('#eo-faltaOtro').checked = !!this.value.trim(); recalcular(); });
+  $$('.eo-falta').forEach(function(c){ c.addEventListener('change', recalcular); });
   $('#eo-operador').addEventListener('input', function(){ this.dataset.auto = this.value ? '0' : '1'; recalcular(); });
-  ['#eo-qInstr', '#eo-qMultas', '#eo-qDanios', '#eo-qMtto'].forEach(function(s){ $(s).addEventListener('input', recalcular); });
+  ['#eo-qMultas', '#eo-qDanios', '#eo-qMtto'].forEach(function(s){ $(s).addEventListener('input', recalcular); });
   $('#eo-btnGenerar').addEventListener('click', generarSemana);
   $('#eo-btnGuardar').addEventListener('click', guardarSemana);
   $('#eo-btnPdf').addEventListener('click', function(){ if (ultimaEval) descargarPdf('eo-hojasSemana', 'Evaluacion_' + ultimaEval.u.eco + '_' + (ultimaEval.operador || '') + '_' + ymd(ultimaEval.desde)); });
-  $('#eo-reporteSemana').addEventListener('click', function(e){ var b = e.target.closest('[data-mapa]'); if (!b) return; if (pageState && pageState.gotoPage) pageState.gotoPage('tripsHistory', { devices: [ultimaEval.u.id], dateRange: { startDate: b.dataset.desde, endDate: b.dataset.hasta } }); else toast('El mapa se abre dentro de MyGeotab.'); });
+  $('#eo-detalle').addEventListener('click', function(e){ var b = e.target.closest('[data-mapa]'); if (!b) return; if (pageState && pageState.gotoPage) pageState.gotoPage('tripsHistory', { devices: [ultimaEval.u.id], dateRange: { startDate: b.dataset.desde, endDate: b.dataset.hasta } }); else toast('El mapa se abre dentro de MyGeotab.'); });
   toggle('#eo-mesModo', function(v){ mesModo = v; pintarEntidadesMes(); $('#eo-reporteMes').innerHTML = ''; $('#eo-btnMesPdf').disabled = true; });
   $('#eo-btnMes').addEventListener('click', verMes);
   $('#eo-btnMesPdf').addEventListener('click', function(){ if (ultimoMes) descargarPdf('eo-hojasMes', 'Evaluacion_mensual_' + ultimoMes.nombre + '_' + ultimoMes.mes); });
@@ -974,6 +1056,13 @@ function enlazar(){
   });
   $('#eo-btnReglasGuardar').addEventListener('click', guardarReglas);
   $('#eo-reglasCont').addEventListener('click', function(e){
+    var q = e.target.closest('[data-quitar]'); if (q){ leerReglasForm(); cfg.reglas = cfg.reglas.filter(function(x){ return x.id !== q.dataset.quitar; }); pintarReglas(); return; }
+    if (e.target.closest('#eo-btnAgregarRegla')){
+      leerReglasForm(); var id = $('#eo-nuevaRegla').value; if (!id){ toast('Elige una regla'); return; }
+      var rr = reglasMyG.find(function(x){ return x.id === id; });
+      cfg.reglas.push({ id: id, nombre: rr.name, fuente: 'MyGeotab', grupo: $('#eo-nuevaGrupo').value, estado: 'c', cuenta: 'evento', puntos: Math.max(0, +$('#eo-nuevaPts').value || 0), extra: true });
+      pintarReglas(); toast('Regla agregada. Recuerda guardar la configuración.'); return;
+    }
     var b = e.target.closest('[data-regla]'); if (!b) return; leerReglasForm();
     if (b.dataset.regla === '__vel') cfg.velocidad.estado = b.dataset.v; else { var r = cfg.reglas.find(function(x){ return x.id === b.dataset.regla; }); if (r) r.estado = b.dataset.v; }
     pintarReglas();
@@ -982,13 +1071,14 @@ function enlazar(){
 function iniciar(){
   if (iniciado) return Promise.resolve(); iniciado = true;
   enlazar();
-  var l = lunes(masDias(new Date(), -7)); $('#eo-semana').value = ymd(l);
-  $('#eo-mes').value = mesDeSemana(l);
+  var pa = periodoAnterior(); $('#eo-desde').value = ymd(pa.desde); $('#eo-hasta').value = ymd(pa.fin);
+  $('#eo-mes').value = mesDeSemana(pa.desde, 7);
   $('#eo-dbNombre').textContent = demo ? 'Modo demostración con datos de ejemplo' : (api && api.database ? 'Base: ' + api.database : '');
   estado('Cargando unidades e historial…');
   return Promise.all([cargarUnidades(), cargarAlmacen()]).then(function(){
     pintarUnidades();
     estado('Elige una unidad para generar su evaluación.');
+    if (cfgRegistro){ var pb = periodoAnterior(); $('#eo-desde').value = ymd(pb.desde); $('#eo-hasta').value = ymd(pb.fin); pintarUnidades(); }
     if (demo){ unidadSel = unidades.find(function(u){ return u.eco === 'T37'; }) || unidades[0]; pintarUnidades(); return generarSemana(); }
   }).catch(function(e){ estado('Error al iniciar: ' + (e.message || e), true); });
 }
@@ -1059,7 +1149,7 @@ var DEMO = (function(){
     return (cache[k] = { trips: trips, logs: logs, exc: exc });
   }
   function rango(t, s){ var x = new Date(t); return x >= new Date(s.fromDate) && x < new Date(s.toDate); }
-  function base(s){ return lunes(new Date(s.fromDate)); }
+  function varias(s, campo, filtro){ var out = []; for (var b = lunes(new Date(s.fromDate)); b < new Date(s.toDate); b = masDias(b, 7)){ construir(b)[campo].forEach(function(x){ if (filtro(x)) out.push(x); }); } return out; }
   function responder(m, p){
     var s = (p && p.search) || {};
     if (m === 'GetAddresses') return p.coordinates.map(function(c){ return { formattedAddress: c.y > 26.8 ? 'Carr. 85 Monterrey–Nuevo Laredo, cerca de Sabinas Hidalgo' : 'Carr. 85, Ciénega de Flores, N.L.' }; });
@@ -1067,10 +1157,11 @@ var DEMO = (function(){
     if (m === 'Set'){ var x = almacen.find(function(a){ return a.id === p.entity.id; }); if (x) x.details = JSON.parse(JSON.stringify(p.entity.details)); return null; }
     switch (p.typeName){
       case 'Device': return DEV;
+      case 'Rule': return [{ id: 'aVel120', name: 'Exceso 120 km/h Tractos', baseType: 'Custom' }, { id: 'aVel110', name: 'Exceso 110 km/h Vans R C', baseType: 'Custom' }, { id: 'RulePostedSpeedingId', name: 'Speeding over posted limit', baseType: 'Stock' }];
       case 'AddInData': return almacen.filter(function(a){ return a.addInId === s.addInId; }).map(function(a){ return { id: a.id, details: JSON.parse(JSON.stringify(a.details)) }; });
-      case 'Trip': return s.deviceSearch.id === 'b53' ? construir(base(s)).trips.filter(function(t){ return rango(t.start, s); }) : [];
-      case 'LogRecord': return s.deviceSearch.id === 'b53' ? construir(lunes(new Date(s.fromDate))).logs.filter(function(l){ return rango(l.dateTime, s); }) : [];
-      case 'ExceptionEvent': return s.deviceSearch.id === 'b53' ? construir(base(s)).exc.filter(function(e){ return e.rule.id === s.ruleSearch.id && rango(e.activeFrom, s); }) : [];
+      case 'Trip': return s.deviceSearch.id === 'b53' ? varias(s, 'trips', function(t){ return rango(t.start, s); }) : [];
+      case 'LogRecord': return s.deviceSearch.id === 'b53' ? varias(s, 'logs', function(l){ return rango(l.dateTime, s); }) : [];
+      case 'ExceptionEvent': return s.deviceSearch.id === 'b53' ? varias(s, 'exc', function(e){ return e.rule.id === s.ruleSearch.id && rango(e.activeFrom, s); }) : [];
       case 'StatusData': return [{ data: 30000 + (new Date(s.fromDate) - new Date(2026, 0, 1)) / 864e5 * 100 }];
       case 'Zone': return Object.keys(Z).map(function(n, i){ var c = Z[n], q = .03; return { id: 'z' + i, name: n, points: [{ x: c[1] - q, y: c[0] - q }, { x: c[1] + q, y: c[0] - q }, { x: c[1] + q, y: c[0] + q }, { x: c[1] - q, y: c[0] + q }] }; })
         .concat(['CEDIS SAN ROQUE', 'Gamesa', 'Sabritas Saltillo', 'Rocket Logistics WH', 'Patio Nuevo Laredo GV', 'TLW NVO LAREDO'].map(function(n, i){ return { id: 'y' + i, name: n, points: [] }; }));
