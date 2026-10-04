@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evaluación de operadores</title>
+</head>
+<body>
+<div id="evaluacionOperador">
+  <header class="barra">
+    <div class="barra-in">
+      <div class="barra-top">
+        <img id="eo-logo" alt="Rocket Logistics">
+        <h1>Evaluación de operadores</h1>
+        <span class="db" id="eo-dbNombre"></span>
+      </div>
+      <div class="rule"></div>
+      <nav class="tabs" role="tablist" aria-label="Secciones">
+        <button class="tab" role="tab" data-tab="semana" aria-selected="true">Evaluación semanal</button>
+        <button class="tab" role="tab" data-tab="mes" aria-selected="false">Evaluación mensual</button>
+        <button class="tab" role="tab" data-tab="tend" aria-selected="false">Tendencias</button>
+        <button class="tab" role="tab" data-tab="geo" aria-selected="false">Viajes y geocercas</button>
+        <button class="tab" role="tab" data-tab="reglas" aria-selected="false">Reglas y metas</button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="envoltura">
+    <!-- ================= SEMANAL ================= -->
+    <section id="eo-tab-semana" class="dos">
+      <aside class="caja">
+        <h2 class="sec">Unidades motrices</h2>
+        <label class="campo">Buscar<input id="eo-buscar" type="search" placeholder="T37, V35…"></label>
+        <div class="nota" id="eo-resumenUnidades" style="margin-top:6px"></div>
+        <div class="lista" id="eo-listaUnidades"></div>
+      </aside>
+      <div>
+        <div class="caja">
+          <div class="campos">
+            <label class="campo">Semana del lunes<input type="date" id="eo-semana"></label>
+            <label class="campo" style="flex:2 1 240px">Operador<input id="eo-operador" placeholder="Se toma del control de viajes"><small id="eo-operadorNota"></small></label>
+            <label class="campo">¿Siguió instrucciones?<select id="eo-qInstr"><option value="si">Sí</option><option value="no">No</option></select></label>
+            <label class="campo">Multas<input type="number" min="0" id="eo-qMultas" value="0"></label>
+            <label class="campo">Daños<input type="number" min="0" id="eo-qDanios" value="0"></label>
+            <label class="campo">Reporte de mtto.<select id="eo-qMtto"><option value="si">Entregado</option><option value="no">No entregado</option></select></label>
+          </div>
+          <div class="acciones" style="margin-top:12px">
+            <button class="btn btn-p" id="eo-btnGenerar">Generar evaluación</button>
+            <button class="btn btn-s" id="eo-btnGuardar" disabled>Guardar en historial</button>
+            <button class="btn btn-s" id="eo-btnPdf" disabled>Descargar PDF</button>
+          </div>
+          <div class="estado" id="eo-estado" role="status" aria-live="polite"></div>
+        </div>
+        <div id="eo-reporteSemana"></div>
+      </div>
+    </section>
+
+    <!-- ================= MENSUAL ================= -->
+    <section id="eo-tab-mes" class="oculto">
+      <div class="caja">
+        <div class="campos">
+          <div class="campo" style="flex:0 0 auto">Evaluar por<div class="toggle" id="eo-mesModo"><button data-v="op" aria-pressed="true">Operador</button><button data-v="un" aria-pressed="false">Unidad</button></div></div>
+          <label class="campo" style="flex:2 1 240px"><span id="eo-mesEntLbl">Operador</span><select id="eo-mesEntidad"></select></label>
+          <label class="campo">Mes<input type="month" id="eo-mes"></label>
+          <div class="acciones"><button class="btn btn-p" id="eo-btnMes">Ver evaluación mensual</button><button class="btn btn-s" id="eo-btnMesPdf" disabled>Descargar PDF</button></div>
+        </div>
+        <div class="nota" style="margin-top:8px">Se arma con las evaluaciones semanales guardadas. Cada semana cuenta en el mes donde cae su jueves.</div>
+      </div>
+      <div id="eo-reporteMes"></div>
+    </section>
+
+    <!-- ================= TENDENCIAS ================= -->
+    <section id="eo-tab-tend" class="oculto">
+      <div class="caja">
+        <div class="campos">
+          <div class="campo" style="flex:0 0 auto">Ver por<div class="toggle" id="eo-tendModo"><button data-v="op" aria-pressed="true">Operador</button><button data-v="un" aria-pressed="false">Unidad</button></div></div>
+          <div class="campo" style="flex:0 0 auto">Periodo<div class="toggle" id="eo-tendPer"><button data-v="sem" aria-pressed="true">Semanas</button><button data-v="mes" aria-pressed="false">Meses</button></div></div>
+        </div>
+      </div>
+      <div class="caja" style="margin-top:14px"><div id="eo-tendTabla"></div></div>
+      <div class="caja" style="margin-top:14px"><div id="eo-tendGraf"></div></div>
+    </section>
+
+    <!-- ================= GEOCERCAS ================= -->
+    <section id="eo-tab-geo" class="oculto">
+      <div class="caja">
+        <h2 class="sec">Rutas del control de viajes y sus geocercas</h2>
+        <p class="nota" style="margin:0 0 10px">Cliente + ciudad del control contra las geocercas de MyGeotab. Con una sola coincidencia se usa sola; si hay varias o ninguna, elige una y guarda. Se guarda en el add-in; el control no se modifica. El tiempo estándar es la mediana de los últimos 90 días del control para esa ruta (mínimo 3 viajes).</p>
+        <div class="acciones" style="margin-bottom:10px"><button class="btn btn-p" id="eo-btnGeoCargar">Cargar rutas de los últimos 90 días</button><button class="btn btn-s" id="eo-btnGeoGuardar" disabled>Guardar asignaciones</button></div>
+        <div class="estado" id="eo-geoEstado"></div>
+        <div id="eo-geoTabla"></div>
+      </div>
+    </section>
+
+    <!-- ================= REGLAS ================= -->
+    <section id="eo-tab-reglas" class="oculto">
+      <div class="caja">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-end">
+          <div style="max-width:760px"><h2 class="sec">Reglas y metas de la evaluación</h2>
+            <p class="nota" style="margin:0"><b style="color:var(--verde-txt)">Califica</b>: resta puntos y sale en el PDF. <b style="color:var(--ambar)">Solo mostrar</b>: aparece en el detalle de MyGeotab, no cuenta. <b>Apagada</b>: no se consulta. Cada evaluación guarda la configuración con la que se hizo.</p></div>
+          <div class="acciones"><button class="btn btn-p" id="eo-btnReglasGuardar">Guardar configuración</button></div>
+        </div>
+        <div id="eo-reglasCont" style="margin-top:14px"></div>
+      </div>
+    </section>
+  </div>
+  <div class="toast" id="eo-toast" role="status"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* =====================================================================
+   AJUSTES DE INSTALACIÓN
+   ===================================================================== */
+var AJUSTES = {
+  // Identificador para guardar historial y configuración en MyGeotab (AddInData). No cambiar una vez en uso.
+  addInId: 'aRkEvOp7mQx2Vt9LcN4wZpA',
+  // URL de la aplicación web de Apps Script que lee el control de viajes (ver apps_script_control_viajes.gs)
+  controlUrl: 'PEGA_AQUI_LA_URL_DE_APPS_SCRIPT',
+  // Unidades motrices: letra T, V, R o C seguida de número
+  patronUnidad: /^([TVRC])\s*-?\s*(\d+)/i
+};
+
+/* Configuración por defecto (se puede cambiar en la pestaña Reglas y metas) */
+var CONFIG_BASE = {
+  pesos: { seguridad: 45, rendimientos: 20, servicio: 25, cualitativo: 10 },
+  tipos: {
+    T: { nombre: 'Tracto', vmax: 120, kml: 3.5, kmSemana: 2500 },
+    V: { nombre: 'Van',    vmax: 110, kml: 9,   kmSemana: 1500 },
+    R: { nombre: 'R',      vmax: 110, kml: 4.5, kmSemana: 1500 },
+    C: { nombre: 'C',      vmax: 110, kml: 4.5, kmSemana: 1500 }
+  },
+  velocidad: { estado: 'c', puntos: 3, extraGrave: 5, margenGrave: 10, minSeg: 20 },
+  ralenti: { metaPct: 10, maxPct: 25 },
+  servicio: { tolLlegadaMin: 30, tolTransitoPct: 10 },
+  cualitativo: { instruccionesNo: 25, porMulta: 25, porDanio: 30, reportesNo: 20 },
+  comision: [ { min: 90, pct: 100 }, { min: 80, pct: 95 }, { min: 70, pct: 90 }, { min: 0, pct: 80 } ],
+  reglas: [
+    { id: 'RuleHarshBrakingId', nombre: 'Frenado brusco', fuente: 'Telemetría', grupo: 'habitos', estado: 'm', cuenta: 'evento', puntos: 4 },
+    { id: 'RuleJackrabbitStartsId', nombre: 'Aceleración brusca', fuente: 'Telemetría', grupo: 'habitos', estado: 'm', cuenta: 'evento', puntos: 3 },
+    { id: 'RuleHarshCorneringId', nombre: 'Giro brusco', fuente: 'Telemetría', grupo: 'habitos', estado: 'm', cuenta: 'evento', puntos: 3 },
+    { id: 'RuleSeatbeltId', nombre: 'Sin cinturón (telemetría)', fuente: 'Telemetría', grupo: 'cinturon', estado: 'c', cuenta: 'dia', puntos: 5 },
+    { id: 'RuleCameraDetectedDriverSeatbeltId', nombre: 'Sin cinturón (GO Focus)', fuente: 'GO Focus', grupo: 'cinturon', estado: 'c', cuenta: 'dia', puntos: 5 },
+    { id: 'ayBVf7frHRUCvK-2fiH1LUA', nombre: 'CAMS: Uso de cinturón', fuente: 'CAMS', grupo: 'cinturon', estado: 'c', cuenta: 'dia', puntos: 5 },
+    { id: 'RuleCameraLensObstructionId', nombre: 'Cámara al conductor obstruida', fuente: 'GO Focus', grupo: 'obstruccion', estado: 'c', cuenta: 'dia', puntos: 15 },
+    { id: 'RuleRoadCameraAdjustmentRequiredId', nombre: 'Cámara al camino requiere ajuste', fuente: 'GO Focus', grupo: 'obstruccion', estado: 'c', cuenta: 'dia', puntos: 15 },
+    { id: 'RuleCameraTamperingId', nombre: 'Tapa de cámara removida', fuente: 'GO Focus', grupo: 'obstruccion', estado: 'm', cuenta: 'evento', puntos: 25 },
+    { id: 'acKvvJoW5ZEWuygwsnuSnyQ', nombre: 'Uso de celular', fuente: 'CAMS', grupo: 'conducta', estado: 'c', cuenta: 'evento', puntos: 10 },
+    { id: 'aI0P9Iuu7FkK6Q3vJJFF9mg', nombre: 'Distracción', fuente: 'CAMS', grupo: 'conducta', estado: 'c', cuenta: 'evento', puntos: 5 },
+    { id: 'apn4hG8p8BUmfDOGasBzx9A', nombre: 'Fumando', fuente: 'CAMS', grupo: 'conducta', estado: 'a', cuenta: 'evento', puntos: 8 },
+    { id: 'aBB_zy3L6z0GDVD7bOS532A', nombre: 'Conductor bostezando', fuente: 'CAMS', grupo: 'conducta', estado: 'a', cuenta: 'evento', puntos: 5 },
+    { id: 'amCShnqNIJUWQctcmI8J8Sw', nombre: 'Distancia de seguimiento', fuente: 'CAMS', grupo: 'conducta', estado: 'a', cuenta: 'evento', puntos: 5 }
+  ],
+  pendientes: [
+    { nombre: 'Obstrucción de cámara MM Cam', fuente: 'MM Cam', motivo: 'Su análisis vive en otro add-in; falta definir cómo leerlo' },
+    { nombre: 'Lente obstruido Lytx', fuente: 'Lytx', motivo: 'No hay datos de Lytx en MyGeotab' }
+  ]
+};
+var GRUPOS = {
+  velocidad: 'Velocidad', habitos: 'Hábitos de manejo', cinturon: 'Cinturón de seguridad',
+  obstruccion: 'Cámara obstruida o tapada', conducta: 'Conducta detectada por cámara'
+};
+
+
+/* =====================================================================
+   ESTILOS (se inyectan con JS: MyGeotab elimina los <style> estáticos)
+   ===================================================================== */
+var LOGO = 'data:image/png;base64,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';
+var CSS = "#evaluacionOperador{\n  --azul:#3E64B4; --azul-osc:#2E4F95; --azul-claro:#E8EEF9;\n  --teal:#4A8DA3; --verde:#5CA36E; --verde-txt:#2E6B3F; --verde-claro:#E4F2EB;\n  --rojo:#B3312C; --rojo-claro:#FCE8E6; --ambar:#B07A00; --ambar-claro:#FFF4D1;\n  --tinta:#222; --titulo:#333; --gris:#5E676F; --linea:#DCE1DE; --zebra:#F6F7F9; --total:#E5E7EB; --fondo:#EEF1EF;\n  --sans:'Helvetica Neue',Helvetica,Arial,sans-serif;\n}\n#evaluacionOperador *, #evaluacionOperador{box-sizing:border-box}\n#evaluacionOperador{margin:0;background:var(--fondo);color:var(--tinta);font-family:var(--sans);font-size:14px;line-height:1.4}\n#evaluacionOperador button,#evaluacionOperador input,#evaluacionOperador select,#evaluacionOperador textarea{font:inherit;color:inherit}\n#evaluacionOperador :focus-visible{outline:3px solid #F2B705;outline-offset:2px}\n#evaluacionOperador .oculto{display:none!important}\n#evaluacionOperador /* barra superior */\n.barra{background:#fff;border-bottom:1px solid var(--linea)}\n#evaluacionOperador .barra-in{max-width:1500px;margin:0 auto;padding:10px 18px 0;display:flex;flex-direction:column;gap:8px}\n#evaluacionOperador .barra-top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}\n#evaluacionOperador .barra-top img{height:34px}\n#evaluacionOperador .barra-top h1{margin:0;font-size:20px;color:var(--titulo)}\n#evaluacionOperador .barra-top .db{margin-left:auto;font-size:12px;color:var(--gris)}\n#evaluacionOperador .rule{height:4px;background:linear-gradient(90deg,var(--azul),#67A36D)}\n#evaluacionOperador .tabs{display:flex;gap:2px;flex-wrap:wrap}\n#evaluacionOperador .tab{border:0;background:none;padding:10px 14px;font-weight:600;color:var(--gris);border-bottom:3px solid transparent;cursor:pointer;min-height:44px}\n#evaluacionOperador .tab[aria-selected=\"true\"]{color:var(--azul);border-bottom-color:var(--azul)}\n#evaluacionOperador .envoltura{max-width:1500px;margin:0 auto;padding:16px 18px 40px}\n#evaluacionOperador .dos{display:grid;grid-template-columns:270px minmax(0,1fr);gap:16px;align-items:start}\n@media(max-width:900px){#evaluacionOperador .dos{grid-template-columns:1fr}}\n#evaluacionOperador .caja{background:#fff;border:1px solid #D3D9D6;border-radius:8px;padding:14px 16px}\n#evaluacionOperador h2.sec{margin:0 0 8px;font-size:19px;color:var(--azul)}\n#evaluacionOperador .nota{font-size:13px;color:var(--gris)}\n#evaluacionOperador /* lista de unidades */\n.lista{display:flex;flex-direction:column;gap:4px;max-height:70vh;overflow:auto;margin-top:8px}\n#evaluacionOperador .uni{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:48px;padding:6px 10px;border:1.5px solid #E3E7E5;border-radius:6px;background:#fff;cursor:pointer;text-align:left}\n#evaluacionOperador .uni[aria-pressed=\"true\"]{border-color:var(--azul);background:var(--azul-claro)}\n#evaluacionOperador .uni b{font-size:15px}\n#evaluacionOperador .uni small{display:block;color:var(--gris);font-size:12px}\n#evaluacionOperador .chip{display:inline-flex;align-items:center;gap:4px;font-weight:700;border-radius:10px;padding:1px 8px;font-size:13px;white-space:nowrap}\n#evaluacionOperador .c-bien{background:var(--verde-claro);color:var(--verde-txt)}\n#evaluacionOperador .c-reg{background:var(--ambar-claro);color:#6E4B00}\n#evaluacionOperador .c-mal{background:var(--rojo-claro);color:#8E1B1B}\n#evaluacionOperador .c-na{background:#EEF0EF;color:var(--gris)}\n#evaluacionOperador /* formularios */\n.campos{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}\n#evaluacionOperador .campo{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;flex:1 1 150px}\n#evaluacionOperador .campo input,#evaluacionOperador .campo select,#evaluacionOperador .campo textarea{font-weight:400;min-height:40px;padding:7px 9px;border:1px solid #C9D0CC;border-radius:6px;background:#fff;font-size:14px}\n#evaluacionOperador .campo small{font-weight:400;color:var(--gris)}\n#evaluacionOperador .btn{border:0;border-radius:6px;min-height:42px;padding:0 16px;font-weight:700;cursor:pointer;white-space:nowrap}\n#evaluacionOperador .btn-p{background:var(--azul);color:#fff}\n#evaluacionOperador .btn-p:hover{background:var(--azul-osc)}\n#evaluacionOperador .btn-s{background:#fff;color:var(--azul);border:1.5px solid var(--azul)}\n#evaluacionOperador .btn[disabled]{opacity:.5;cursor:not-allowed}\n#evaluacionOperador .acciones{display:flex;gap:8px;flex-wrap:wrap}\n#evaluacionOperador .estado{font-size:13px;margin:8px 0;min-height:18px}\n#evaluacionOperador .estado.error{color:var(--rojo);font-weight:700}\n#evaluacionOperador /* hojas tipo reporte Rocket (lo que va al PDF) */\n.hojas{display:flex;flex-direction:column;gap:16px;align-items:center;margin-top:14px}\n#evaluacionOperador .hoja{width:816px;min-height:1056px;background:#fff;color:#222;padding:22px 36px 22px;display:flex;flex-direction:column;gap:10px;box-shadow:0 0 0 1px #D3D9D6;font-size:15px}\n#evaluacionOperador .pdf .hoja{box-shadow:none;min-height:1050px;height:1050px;overflow:hidden}\n#evaluacionOperador .h-cab{display:flex;justify-content:space-between;align-items:center}\n#evaluacionOperador .h-cab img{width:168px}\n#evaluacionOperador .h-cab .der{text-align:right;display:flex;flex-direction:column;gap:3px}\n#evaluacionOperador .h-cab .der b{color:var(--azul);font-size:15px}\n#evaluacionOperador .h-cab .der span{font-size:11px;color:#555}\n#evaluacionOperador .h-tit{padding:0 8px}\n#evaluacionOperador .h-tit h1{margin:0;font-size:26px;color:var(--titulo)}\n#evaluacionOperador .h-tit div{font-size:13px;color:#666}\n#evaluacionOperador .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:0 6px}\n#evaluacionOperador .kpi{border:1px solid #D6D9DE;border-top:4px solid var(--c);display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 6px 8px;text-align:center}\n#evaluacionOperador .kpi b{font-size:30px;line-height:1.1;color:var(--t,var(--c))}\n#evaluacionOperador .kpi b small{font-size:17px}\n#evaluacionOperador .kpi span{font-size:12px;color:#555}\n#evaluacionOperador .h-sec{padding:0 8px;display:flex;flex-direction:column;gap:6px}\n#evaluacionOperador .h-sec h2{margin:0;font-size:20px;color:var(--azul)}\n#evaluacionOperador .h-sec ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:2px}\n#evaluacionOperador .t{width:100%;border-collapse:collapse;font-size:13.5px}\n#evaluacionOperador .t th{background:var(--azul);color:#fff;text-align:left;padding:6px 9px;font-weight:700}\n#evaluacionOperador .t td{padding:5px 9px;border-bottom:1px solid #E3E5E8;vertical-align:top}\n#evaluacionOperador .t tbody tr:nth-child(even) td{background:var(--zebra)}\n#evaluacionOperador .t tr.tot td{background:var(--total);font-weight:700}\n#evaluacionOperador .t .der{text-align:right}\n#evaluacionOperador .rojo{color:var(--rojo);font-weight:700}\n#evaluacionOperador .verde{color:#4E9461;font-weight:700}\n#evaluacionOperador .pie-n{font-size:11px;color:#555}\n#evaluacionOperador .firmas{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;padding:0 30px}\n#evaluacionOperador .firmas div{border-top:1px solid #333;padding-top:6px;text-align:center;font-size:12px;color:#555}\n#evaluacionOperador .pie{display:flex;justify-content:space-between;font-size:11px;color:#777;padding:0 8px}\n#evaluacionOperador .graf{display:block;width:100%;height:auto}\n#evaluacionOperador #eo-tendGraf .graf{max-width:900px}\n#evaluacionOperador .vacio{padding:10px 12px;background:var(--zebra);color:var(--gris);font-size:13px}\n#evaluacionOperador /* detalle interactivo (no va al PDF) */\n.detalle{width:816px;max-width:100%;margin:0 auto}\n#evaluacionOperador .t2{width:100%;border-collapse:collapse;font-size:13px}\n#evaluacionOperador .t2 th{text-align:left;color:var(--gris);font-weight:600;border-bottom:2px solid var(--linea);padding:6px 8px;white-space:nowrap}\n#evaluacionOperador .t2 td{padding:6px 8px;border-bottom:1px solid #EDF0EE}\n#evaluacionOperador .scroll{overflow-x:auto}\n#evaluacionOperador .btn-mapa{border:1px solid #C9D0CC;background:#fff;border-radius:5px;min-height:32px;padding:0 10px;font-size:12px;cursor:pointer}\n#evaluacionOperador .etq{display:inline-block;border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700}\n#evaluacionOperador .seg{display:inline-flex;border:1px solid #C9D0CC;border-radius:6px;overflow:hidden}\n#evaluacionOperador .seg button{border:0;background:#fff;min-height:34px;padding:0 10px;font-size:12px;font-weight:600;cursor:pointer}\n#evaluacionOperador .seg button[aria-pressed=\"true\"].c{background:var(--verde-txt);color:#fff}\n#evaluacionOperador .seg button[aria-pressed=\"true\"].m{background:var(--ambar);color:#fff}\n#evaluacionOperador .seg button[aria-pressed=\"true\"].a{background:var(--gris);color:#fff}\n#evaluacionOperador .toggle{display:inline-flex;border:1.5px solid var(--azul);border-radius:6px;overflow:hidden}\n#evaluacionOperador .toggle button{border:0;background:#fff;color:var(--azul);min-height:38px;padding:0 14px;font-weight:700;cursor:pointer}\n#evaluacionOperador .toggle button[aria-pressed=\"true\"]{background:var(--azul);color:#fff}\n#evaluacionOperador .celda{display:inline-flex;min-width:52px;justify-content:center;border-radius:6px;padding:4px 6px;font-weight:700;border:1px solid transparent;cursor:pointer;background:none}\n#evaluacionOperador .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#23292E;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}\n#evaluacionOperador .toast.ver{opacity:1}\n@media(max-width:860px){#evaluacionOperador .hoja{width:100%;min-height:0;padding:16px}\n#evaluacionOperador .kpis{grid-template-columns:1fr 1fr}}\n@media(prefers-reduced-motion:reduce){#evaluacionOperador *, #evaluacionOperador{transition:none!important}}";
+function inyectarCSS(){
+  if (document.getElementById('eo-css')) return;
+  var st = document.createElement('style'); st.id = 'eo-css'; st.textContent = CSS;
+  (document.head || document.documentElement).appendChild(st);
+  var img = $('#eo-logo'); if (img) img.src = LOGO;
+}
+function cargarScript(url){
+  return new Promise(function(res, rej){
+    if (document.querySelector('script[src="' + url + '"]')) return res();
+    var sc = document.createElement('script'); sc.src = url; sc.onload = res; sc.onerror = function(){ rej(new Error('No se pudo cargar ' + url)); };
+    document.head.appendChild(sc);
+  });
+}
+var URL_HTML2PDF = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+
+/* =====================================================================
+   ESTADO
+   ===================================================================== */
+var api = null, pageState = null, demo = false, iniciado = false;
+var unidades = [], unidadSel = null, cfg = clonar(CONFIG_BASE), cfgRegistro = null;
+var historial = [], asignaciones = {}, asignRegistros = {};
+var zonas = null, controlCache = {}, ultimaEval = null, ultimoMes = null;
+var direcciones = {};
+
+/* =====================================================================
+   UTILIDADES
+   ===================================================================== */
+function raiz(){ return document.getElementById('evaluacionOperador') || document; }
+function $(s){ return raiz().querySelector(s); }
+function $$(s){ return Array.prototype.slice.call(raiz().querySelectorAll(s)); }
+function clonar(o){ return JSON.parse(JSON.stringify(o)); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function norm(s){ return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function palabras(s){ return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean); }
+function clamp(v){ return Math.max(0, Math.min(100, v)); }
+function n0(v){ return Math.round(v).toLocaleString('es-MX'); }
+function n1(v){ return (Math.round(v * 10) / 10).toLocaleString('es-MX', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+function ymd(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function deYmd(s){ var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function lunes(d){ var x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+function masDias(d, n){ var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function durSeg(s){ if (s == null) return 0; if (typeof s === 'number') return s; var m = String(s).match(/^(?:(\d+)\.)?(\d+):(\d+):(\d+(?:\.\d+)?)$/); return m ? (+(m[1] || 0)) * 86400 + (+m[2]) * 3600 + (+m[3]) * 60 + parseFloat(m[4]) : 0; }
+function hm(h){ if (h == null || isNaN(h)) return '—'; var t = Math.round(h * 60); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0') + ' h'; }
+function minTxt(m){ m = Math.round(m); return m >= 60 ? Math.floor(m / 60) + ' h ' + (m % 60) + ' min' : m + ' min'; }
+function promedio(a){ a = a.filter(function(x){ return x != null && !isNaN(x); }); return a.length ? a.reduce(function(s, x){ return s + x; }, 0) / a.length : null; }
+function mediana(a){ a = a.slice().sort(function(x, y){ return x - y; }); if (!a.length) return null; var m = Math.floor(a.length / 2); return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
+function pesado(pares){ var s = 0, w = 0; pares.forEach(function(p){ if (p[0] != null){ s += p[0] * p[1]; w += p[1]; } }); return w ? s / w : null; }
+var DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+var MES3 = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+function diaTxt(d){ return DIAS[d.getDay()] + ' ' + d.getDate(); }
+function hora(d){ return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+function fechaHora(d){ return d ? diaTxt(d) + ', ' + hora(d) : '—'; }
+function rangoTxt(a, b){ return a.getMonth() === b.getMonth() ? a.getDate() + ' al ' + b.getDate() + ' de ' + MESES[b.getMonth()] + ' ' + b.getFullYear() : a.getDate() + ' de ' + MESES[a.getMonth()] + ' al ' + b.getDate() + ' de ' + MESES[b.getMonth()] + ' ' + b.getFullYear(); }
+function semanaISO(d){ var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); var dn = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dn); var y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y0) / 86400000 + 1) / 7); }
+function mesDeSemana(lun){ var j = masDias(lun, 3); return j.getFullYear() + '-' + String(j.getMonth() + 1).padStart(2, '0'); }
+function nivel(v){ return v == null ? 'na' : v >= 90 ? 'bien' : v >= 70 ? 'reg' : 'mal'; }
+function chip(v, txt){ var n = nivel(v); return '<span class="chip c-' + n + '">' + (txt != null ? txt : (v == null ? '—' : Math.round(v))) + '</span>'; }
+function comisionDe(total){ return cfg.comision.find(function(e){ return (total || 0) >= e.min; }) || cfg.comision[cfg.comision.length - 1]; }
+function toast(t){ var el = $('#eo-toast'); el.textContent = t; el.classList.add('ver'); clearTimeout(toast._t); toast._t = setTimeout(function(){ el.classList.remove('ver'); }, 2800); }
+function estado(t, err){ var el = $('#eo-estado'); el.textContent = t || ''; el.className = 'estado' + (err ? ' error' : ''); }
+
+function llamar(m, p){ return new Promise(function(res, rej){ api.call(m, p, res, rej); }); }
+function multi(calls){ return calls.length ? new Promise(function(res, rej){ api.multiCall(calls, res, rej); }) : Promise.resolve([]); }
+function parseFechaTxt(v){
+  if (v == null || v === '') return null;
+  if (v instanceof Date) return isNaN(v) ? null : v;
+  var s = String(v).trim(), m;
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2}))?/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0));
+  m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?/);
+  if (m){ var y = +m[3]; if (y < 100) y += 2000; return new Date(y, +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0)); }
+  m = s.match(/^(\d{1,2})[\/\- ]([a-zA-Zé]{3})[a-z]*\.?[\/\- ](\d{2,4})/);
+  if (m){ var mi = MES3.indexOf(norm(m[2]).slice(0, 3)); var yy = +m[3]; if (yy < 100) yy += 2000; if (mi >= 0) return new Date(yy, mi, +m[1]); }
+  return null;
+}
+function parseHoraTxt(v){ var m = String(v || '').match(/(\d{1,2}):(\d{2})/); return m ? { h: +m[1], m: +m[2] } : null; }
+function combinar(fecha, horaTxt){ if (!fecha) return null; var h = parseHoraTxt(horaTxt); if (!h) return null; var d = new Date(fecha); d.setHours(h.h, h.m, 0, 0); return d; }
+
+/* =====================================================================
+   ICONOS Y GRÁFICAS (estilo reporte Rocket)
+   ===================================================================== */
+function grafLinea(o){
+  // o: {etiquetas, series:[{nombre,color,valores,marca:'c'|'s'}], ref, refTxt, sombra:[idx], anot:{i,serie,txt}, ymax, ytxt, pie}
+  var W = 736, H = o.alto || 236, L = 60, R = 720, T = 18, B = H - 42, n = o.etiquetas.length || 1, sw = (R - L) / n;
+  var maxV = o.ymax || Math.max.apply(null, [o.ref || 0].concat([].concat.apply([], o.series.map(function(s){ return s.valores.filter(function(v){ return v != null; }); })))) * 1.15 || 1;
+  var paso = maxV > 120 ? 20 : maxV > 60 ? 10 : maxV > 12 ? 5 : 1;
+  maxV = Math.ceil(maxV / paso) * paso;
+  function x(i){ return L + sw * (i + 0.5); } function y(v){ return B - (B - T) * v / maxV; }
+  var s = '<svg class="graf" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(o.aria || '') + '">';
+  (o.sombra || []).forEach(function(i){ s += '<rect x="' + (L + sw * i).toFixed(1) + '" y="' + T + '" width="' + sw.toFixed(1) + '" height="' + (B - T) + '" fill="#E5E7EB"/>'; });
+  for (var g = 0; g <= maxV; g += paso * (maxV / paso > 8 ? 2 : 1)){
+    s += '<line x1="' + L + '" x2="' + R + '" y1="' + y(g).toFixed(1) + '" y2="' + y(g).toFixed(1) + '" stroke="#ECEEF1"/>';
+    s += '<text x="' + (L - 6) + '" y="' + (y(g) + 4).toFixed(1) + '" font-size="11" fill="#333" text-anchor="end" font-family="Helvetica,Arial">' + g + '</text>';
+  }
+  s += '<line x1="' + L + '" x2="' + L + '" y1="' + T + '" y2="' + B + '" stroke="#333"/><line x1="' + L + '" x2="' + R + '" y1="' + B + '" y2="' + B + '" stroke="#333"/>';
+  if (o.ytxt) s += '<text x="18" y="' + ((T + B) / 2) + '" font-size="11" fill="#333" text-anchor="middle" transform="rotate(-90 18 ' + ((T + B) / 2) + ')" font-family="Helvetica,Arial">' + esc(o.ytxt) + '</text>';
+  if (o.ref != null){ s += '<line x1="' + L + '" x2="' + R + '" y1="' + y(o.ref).toFixed(1) + '" y2="' + y(o.ref).toFixed(1) + '" stroke="#D9534F" stroke-width="1.5" stroke-dasharray="5 4"/><text x="' + (R - 2) + '" y="' + (y(o.ref) + 13).toFixed(1) + '" font-size="11" fill="#D9534F" text-anchor="end" font-family="Helvetica,Arial">' + esc(o.refTxt || o.ref) + '</text>'; }
+  o.series.forEach(function(se){
+    var pts = []; se.valores.forEach(function(v, i){ if (v != null) pts.push(x(i).toFixed(1) + ',' + y(v).toFixed(1)); });
+    if (pts.length > 1) s += '<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + se.color + '" stroke-width="2.4"/>';
+    se.valores.forEach(function(v, i){ if (v == null) return; s += se.marca === 's' ? '<rect x="' + (x(i) - 3.5).toFixed(1) + '" y="' + (y(v) - 3.5).toFixed(1) + '" width="7" height="7" fill="' + se.color + '"/>' : '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="4" fill="' + se.color + '"/>'; });
+  });
+  if (o.anot && o.series[o.anot.serie] && o.series[o.anot.serie].valores[o.anot.i] != null){
+    var ax = x(o.anot.i), ay = y(o.series[o.anot.serie].valores[o.anot.i]), tx = ax > R - 150 ? ax - 150 : ax + 14;
+    s += '<line x1="' + ax + '" y1="' + (ay - 4) + '" x2="' + (tx + 10) + '" y2="' + Math.max(T + 4, ay - 18) + '" stroke="' + o.series[o.anot.serie].color + '"/><text x="' + tx + '" y="' + Math.max(T + 2, ay - 21) + '" font-size="11" fill="' + o.series[o.anot.serie].color + '" font-family="Helvetica,Arial">' + esc(o.anot.txt) + '</text>';
+  }
+  o.etiquetas.forEach(function(e, i){ s += '<text x="' + x(i).toFixed(1) + '" y="' + (B + 16) + '" font-size="11" fill="#333" text-anchor="middle" font-family="Helvetica,Arial">' + esc(e) + '</text>'; });
+  var lx = L + 14;
+  o.series.forEach(function(se){
+    if (!se.nombre) return;
+    var ly = H - 4 - (o.pie ? 0 : 0); s += '<line x1="' + lx + '" x2="' + (lx + 20) + '" y1="' + (ly - 4) + '" y2="' + (ly - 4) + '" stroke="' + se.color + '" stroke-width="2.4"/>' + (se.marca === 's' ? '<rect x="' + (lx + 6.5) + '" y="' + (ly - 7.5) + '" width="7" height="7" fill="' + se.color + '"/>' : '<circle cx="' + (lx + 10) + '" cy="' + (ly - 4) + '" r="3.5" fill="' + se.color + '"/>') + '<text x="' + (lx + 26) + '" y="' + ly + '" font-size="11" fill="#333" font-family="Helvetica,Arial">' + esc(se.nombre) + '</text>';
+    lx += 40 + se.nombre.length * 6.2;
+  });
+  if (o.pie) s += '<text x="' + R + '" y="' + (H - 4) + '" font-size="11" fill="#333" text-anchor="end" font-family="Helvetica,Arial">' + esc(o.pie) + '</text>';
+  return s + '</svg>';
+}
+function grafBarras(o){
+  // o: {etiquetas, valores, sub:[{txt,color}], sombra, ytxt}
+  var W = 736, H = 196, L = 60, R = 720, T = 14, B = 148, n = o.etiquetas.length || 1, sw = (R - L) / n;
+  var maxV = Math.max.apply(null, [1].concat(o.valores)) * 1.15, paso = maxV > 800 ? 200 : maxV > 300 ? 100 : 50; maxV = Math.ceil(maxV / paso) * paso;
+  function y(v){ return B - (B - T) * v / maxV; }
+  var s = '<svg class="graf" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(o.aria || '') + '">';
+  (o.sombra || []).forEach(function(i){ s += '<rect x="' + (L + sw * i).toFixed(1) + '" y="' + T + '" width="' + sw.toFixed(1) + '" height="' + (B - T) + '" fill="#E5E7EB"/>'; });
+  for (var g = 0; g <= maxV; g += paso){ s += '<line x1="' + L + '" x2="' + R + '" y1="' + y(g).toFixed(1) + '" y2="' + y(g).toFixed(1) + '" stroke="#ECEEF1"/><text x="' + (L - 6) + '" y="' + (y(g) + 4).toFixed(1) + '" font-size="11" fill="#333" text-anchor="end" font-family="Helvetica,Arial">' + g + '</text>'; }
+  s += '<line x1="' + L + '" x2="' + L + '" y1="' + T + '" y2="' + B + '" stroke="#333"/><line x1="' + L + '" x2="' + R + '" y1="' + B + '" y2="' + B + '" stroke="#333"/>';
+  if (o.ytxt) s += '<text x="18" y="' + ((T + B) / 2) + '" font-size="11" fill="#333" text-anchor="middle" transform="rotate(-90 18 ' + ((T + B) / 2) + ')" font-family="Helvetica,Arial">' + esc(o.ytxt) + '</text>';
+  o.valores.forEach(function(v, i){
+    var cx = L + sw * (i + 0.5), w = Math.min(48, sw * 0.6);
+    if (v > 0) s += '<rect x="' + (cx - w / 2).toFixed(1) + '" y="' + y(v).toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + (B - y(v)).toFixed(1) + '" fill="#3E64B4"/>';
+    s += '<text x="' + cx.toFixed(1) + '" y="' + (y(v) - 5).toFixed(1) + '" font-size="11" fill="#333" text-anchor="middle" font-family="Helvetica,Arial">' + n0(v) + '</text>';
+    s += '<text x="' + cx.toFixed(1) + '" y="' + (B + 16) + '" font-size="11" fill="#333" text-anchor="middle" font-family="Helvetica,Arial">' + esc(o.etiquetas[i]) + '</text>';
+    if (o.sub) s += '<text x="' + cx.toFixed(1) + '" y="' + (B + 36) + '" font-size="12" font-weight="700" fill="' + o.sub[i].color + '" text-anchor="middle" font-family="Helvetica,Arial">' + esc(o.sub[i].txt) + '</text>';
+  });
+  if (o.sub) s += '<text x="30" y="' + (B + 36) + '" font-size="11" fill="#333" text-anchor="middle" font-family="Helvetica,Arial">' + esc(o.subTxt || '') + '</text>';
+  return s + '</svg>';
+}
+
+/* =====================================================================
+   ALMACENAMIENTO EN MYGEOTAB (AddInData)
+   ===================================================================== */
+function cargarAlmacen(){
+  return llamar('Get', { typeName: 'AddInData', search: { addInId: AJUSTES.addInId } }).then(function(rs){
+    historial = []; asignaciones = {}; asignRegistros = {}; cfgRegistro = null;
+    var configs = [];
+    (rs || []).forEach(function(r){
+      var d = r.details || r.data; if (typeof d === 'string'){ try { d = JSON.parse(d); } catch (e){ return; } }
+      if (!d || !d.tipo) return;
+      if (d.tipo === 'eval') historial.push(Object.assign({ _id: r.id }, d));
+      else if (d.tipo === 'geo'){ asignaciones[d.clave] = d; asignRegistros[d.clave] = r.id; }
+      else if (d.tipo === 'config') configs.push({ id: r.id, d: d });
+    });
+    configs.sort(function(a, b){ return a.d.guardadoEl < b.d.guardadoEl ? 1 : -1; });
+    if (configs[0]){ cfgRegistro = configs[0].id; cfg = Object.assign(clonar(CONFIG_BASE), configs[0].d.cfg); }
+  }).catch(function(e){ console.warn('AddInData', e); toast('No se pudo leer el historial guardado'); });
+}
+function guardarDato(detalles, id){
+  var ent = { addInId: AJUSTES.addInId, details: detalles };
+  if (id){ ent.id = id; return llamar('Set', { typeName: 'AddInData', entity: ent }).then(function(){ return id; }); }
+  return llamar('Add', { typeName: 'AddInData', entity: ent });
+}
+
+/* =====================================================================
+   CONTROL DE VIAJES (Apps Script, solo lectura)
+   ===================================================================== */
+var COLS = {
+  rkt: ['rkt', 'viaje', 'folio', 'noviaje'], fecha: ['fechadecarga', 'fechacarga'], cliente: ['cliente'],
+  origen: ['origen', 'localidaddeorigen'], hLlegO: ['horallegadaorigen', 'horadellegadaorigen', 'llegadaorigen'],
+  hSalO: ['horasalidaorigen', 'horadesalidaorigen', 'salidaorigen'], cita: ['cita', 'horacita', 'citaorigen', 'eta'],
+  destino: ['destino', 'localidaddedestino'], fLlegD: ['fechallegadadestino', 'fechadellegadadestino', 'fechallegada'],
+  hArrD: ['horaarribodestino', 'horadearribo', 'horaarribo'], fhArr: ['fechayhoraarribo'],
+  unidad: ['unidad', 'economico', 'tracto'], operador: ['operador', 'conductor', 'chofer']
+};
+function cargarControl(desde, hasta){
+  var k = ymd(desde) + '|' + ymd(hasta);
+  if (controlCache[k]) return Promise.resolve(controlCache[k]);
+  var p;
+  if (demo) p = Promise.resolve(DEMO.control(desde, hasta));
+  else if (!/^https:/.test(AJUSTES.controlUrl)) return Promise.resolve({ error: 'Falta configurar la URL del control de viajes (AJUSTES.controlUrl).', filas: [] });
+  else p = fetch(AJUSTES.controlUrl + '?desde=' + ymd(desde) + '&hasta=' + ymd(hasta) + '&_=' + Date.now(), { cache: 'no-store' })
+    .then(function(r){ return r.text(); })
+    .then(function(t){
+      if (!t) throw new Error('el Apps Script respondió vacío');
+      if (/^\s*</.test(t)) throw new Error('el Apps Script respondió una página en lugar de datos (revisa que la implementación sea /exec con acceso "Cualquiera")');
+      return JSON.parse(t);
+    });
+  return p.then(function(j){
+    if (j.error) return { error: j.error, filas: [] };
+    var hs = j.headers.map(norm), idx = {};
+    Object.keys(COLS).forEach(function(c){
+      var i = -1;
+      COLS[c].some(function(alias){ i = hs.indexOf(alias); return i >= 0; });
+      if (i < 0) COLS[c].some(function(alias){ i = hs.findIndex(function(h){ return h.indexOf(alias) === 0; }); return i >= 0; });
+      idx[c] = i;
+    });
+    function v(r, c){ return idx[c] >= 0 ? r[idx[c]] : ''; }
+    var filas = j.rows.map(function(r){
+      var fecha = parseFechaTxt(v(r, 'fecha'));
+      var fLlegD = parseFechaTxt(v(r, 'fLlegD')) || fecha;
+      var arr = parseFechaTxt(v(r, 'fhArr'));
+      if (arr && !parseHoraTxt(v(r, 'fhArr'))) arr = null;
+      var llegO = combinar(fecha, v(r, 'hLlegO')), salO = combinar(fecha, v(r, 'hSalO'));
+      if (llegO && salO && salO < llegO) salO = masDias(salO, 1);
+      var arrD = arr || combinar(fLlegD, v(r, 'hArrD'));
+      if (arrD && salO && arrD < salO) arrD = masDias(arrD, 1);
+      var citaTxt = v(r, 'cita'), cita = citaTxt ? (parseFechaTxt(citaTxt) && parseHoraTxt(citaTxt) ? parseFechaTxt(citaTxt) : combinar(fecha, citaTxt)) : null;
+      return { rkt: String(v(r, 'rkt') || ''), fecha: fecha, cliente: String(v(r, 'cliente') || '').trim(), origen: String(v(r, 'origen') || '').trim(),
+               destino: String(v(r, 'destino') || '').trim(), unidad: String(v(r, 'unidad') || '').trim(), operador: String(v(r, 'operador') || '').trim(),
+               llegO: llegO, salO: salO, arrD: arrD, cita: cita };
+    }).filter(function(f){ return f.fecha && (f.rkt || f.unidad); });
+    var res = { filas: filas, columnas: idx, headers: j.headers };
+    controlCache[k] = res; return res;
+  }).catch(function(e){ return { error: 'No se pudo leer el control de viajes: ' + e.message, filas: [] }; });
+}
+function claveRuta(f){ return norm(f.cliente) + '|' + norm(f.origen) + '|' + norm(f.destino); }
+function estandares(filas){
+  var m = {};
+  filas.forEach(function(f){ if (!f.salO || !f.arrD) return; var h = (f.arrD - f.salO) / 3600000; if (h <= 0 || h > 48) return; (m[claveRuta(f)] = m[claveRuta(f)] || []).push(h); });
+  var out = {}; Object.keys(m).forEach(function(k){ if (m[k].length >= 3) out[k] = { h: mediana(m[k]), n: m[k].length }; });
+  return out;
+}
+
+/* =====================================================================
+   GEOCERCAS
+   ===================================================================== */
+var SINONIMOS = { nvo: 'nuevo', nva: 'nueva', mty: 'monterrey', gdl: 'guadalajara', slp: 'san luis potosi', cd: 'ciudad', pesico: 'pepsico', pespico: 'pepsico', gpe: 'guadalupe', sta: 'santa', hdg: 'hidalgo', qro: 'queretaro', chih: 'chihuahua', jrz: 'juarez' };
+function tokens(s){ return palabras(s).map(function(w){ return SINONIMOS[w] || w; }).join(' ').split(' ').filter(function(w){ return w.length > 1 && ['de', 'del', 'la', 'el', 'los', 'sa', 'cv', 'nl'].indexOf(w) < 0; }); }
+function cargarZonas(){
+  if (zonas) return Promise.resolve(zonas);
+  return llamar('Get', { typeName: 'Zone', propertySelector: { fields: ['id', 'name', 'points'], isIncluded: true } })
+    .catch(function(){ return llamar('Get', { typeName: 'Zone' }); })
+    .then(function(zs){ zonas = (zs || []).map(function(z){ return { id: z.id, name: z.name, points: z.points, tk: tokens(z.name) }; }); return zonas; });
+}
+function candidatos(cliente, ciudad){
+  var tc = tokens(cliente), tu = tokens(ciudad);
+  var conCliente = zonas.filter(function(z){ return tc.length && tc.every(function(t){ return z.tk.indexOf(t) >= 0; }); });
+  function aciertos(z){ return tu.filter(function(t){ return z.tk.indexOf(t) >= 0; }).length; }
+  var mejor = Math.max.apply(null, [0].concat(conCliente.map(aciertos)));
+  var conAmbos = mejor ? conCliente.filter(function(z){ return aciertos(z) === mejor; }) : [];
+  if (conAmbos.length) return { tipo: conAmbos.length === 1 ? 'una' : 'varias', zonas: conAmbos };
+  if (conCliente.length) return { tipo: 'varias', zonas: conCliente.slice(0, 12) };
+  var conCiudad = zonas.filter(function(z){ return tu.length && tu.every(function(t){ return z.tk.indexOf(t) >= 0; }); });
+  return { tipo: 'ninguna', zonas: conCiudad.slice(0, 12) };
+}
+function zonaPara(cliente, ciudad){
+  var k = norm(cliente) + '|' + norm(ciudad), a = asignaciones[k];
+  if (a){ var z = zonas.find(function(x){ return x.id === a.zonaId; }); if (z) return z; }
+  var c = candidatos(cliente, ciudad);
+  return c.tipo === 'una' ? c.zonas[0] : null;
+}
+function dentro(pt, z){
+  if (!pt || !z || !z.points || z.points.length < 3) return false;
+  var x = pt.x, y = pt.y, p = z.points, ins = false;
+  for (var i = 0, j = p.length - 1; i < p.length; j = i++){ if (((p[i].y > y) !== (p[j].y > y)) && (x < (p[j].x - p[i].x) * (y - p[i].y) / (p[j].y - p[i].y) + p[i].x)) ins = !ins; }
+  return ins;
+}
+
+/* =====================================================================
+   UNIDADES
+   ===================================================================== */
+function infoUnidad(dev){
+  var nombre = String(dev.name || '').trim(), m = nombre.match(AJUSTES.patronUnidad);
+  if (!m) return null;
+  var eco = m[1].toUpperCase() + m[2], resto = nombre.slice(m[0].length).trim();
+  var operador = /[a-záéíóúñ]/.test(resto) ? resto : '';
+  return { id: dev.id, nombre: nombre, eco: eco, tipo: m[1].toUpperCase(), operadorMyG: operador };
+}
+function cargarUnidades(){
+  return llamar('Get', { typeName: 'Device', search: { fromDate: new Date().toISOString() } }).then(function(ds){
+    var vistos = {};
+    ds = (ds || []).slice().sort(function(a, b){ return new Date(b.activeFrom || 0) - new Date(a.activeFrom || 0); });
+    unidades = ds.map(infoUnidad).filter(Boolean).filter(function(u){ if (vistos[u.eco]) return false; vistos[u.eco] = 1; return true; })
+      .sort(function(a, b){ return a.tipo === b.tipo ? (+a.eco.slice(1)) - (+b.eco.slice(1)) : 'TVRC'.indexOf(a.tipo) - 'TVRC'.indexOf(b.tipo); });
+  });
+}
+function pintarUnidades(){
+  var q = norm($('#eo-buscar').value), lun = ymd(deYmd($('#eo-semana').value));
+  var ev = 0;
+  var html = unidades.filter(function(u){ return !q || norm(u.nombre).indexOf(q) >= 0; }).map(function(u){
+    var h = historial.find(function(x){ return x.deviceId === u.id && x.semana === lun; });
+    if (h) ev++;
+    return '<button class="uni" data-id="' + u.id + '" aria-pressed="' + (unidadSel && unidadSel.id === u.id) + '"><span><b>' + esc(u.eco) + '</b><small>' + esc(u.operadorMyG || (cfg.tipos[u.tipo] || {}).nombre || '') + '</small></span>' + (h ? chip(h.total) : '<span class="chip c-na">Pendiente</span>') + '</button>';
+  }).join('');
+  $('#eo-listaUnidades').innerHTML = html || '<div class="vacio">Sin unidades</div>';
+  $('#eo-resumenUnidades').textContent = unidades.length + ' unidades T, V, R y C. ' + ev + ' evaluadas en la semana.';
+}
+
+/* =====================================================================
+   EVALUACIÓN SEMANAL: DATOS
+   ===================================================================== */
+function datosSemana(u, desde){
+  var hasta = masDias(desde, 7), ds = { id: u.id }, from = desde.toISOString(), to = hasta.toISOString(), d = {};
+  var reglas = cfg.reglas.filter(function(r){ return r.estado !== 'a'; });
+  var dias = []; for (var i = 0; i < 7; i++) dias.push(masDias(desde, i));
+  return llamar('Get', { typeName: 'Trip', search: { deviceSearch: ds, fromDate: from, toDate: to } }).then(function(t){
+    d.trips = (t || []).sort(function(a, b){ return new Date(a.start) - new Date(b.start); });
+    return multi(dias.map(function(x){ return ['Get', { typeName: 'LogRecord', search: { deviceSearch: ds, fromDate: x.toISOString(), toDate: masDias(x, 1).toISOString() } }]; }));
+  }).then(function(lr){
+    d.logs = [].concat.apply([], lr || []).sort(function(a, b){ return new Date(a.dateTime) - new Date(b.dateTime); });
+    return multi(reglas.map(function(r){ return ['Get', { typeName: 'ExceptionEvent', search: { deviceSearch: ds, ruleSearch: { id: r.id }, fromDate: from, toDate: to } }]; })).catch(function(){ return reglas.map(function(){ return []; }); });
+  }).then(function(ex){
+    d.exc = {}; reglas.forEach(function(r, i){ d.exc[r.id] = (ex && ex[i]) || []; });
+    var fd = { id: 'DiagnosticDeviceTotalFuelId' };
+    return multi([
+      ['Get', { typeName: 'StatusData', search: { deviceSearch: ds, diagnosticSearch: fd, fromDate: from, toDate: from } }],
+      ['Get', { typeName: 'StatusData', search: { deviceSearch: ds, diagnosticSearch: fd, fromDate: to, toDate: to } }]
+    ]).catch(function(){ return [[], []]; });
+  }).then(function(f){
+    var a = f[0] && f[0][0], b = f[1] && f[1][0];
+    d.litros = (a && b && b.data > a.data) ? b.data - a.data : null;
+    return Promise.all([cargarControl(desde, hasta), cargarControl(masDias(desde, -90), desde), cargarZonas()]);
+  }).then(function(r){
+    d.control = r[0]; d.std = estandares(r[1].filas.concat(r[0].filas));
+    d.filas = r[0].filas.filter(function(f){ return norm(f.unidad) === norm(u.eco); });
+    return d;
+  });
+}
+
+/* =====================================================================
+   EVALUACIÓN SEMANAL: CÁLCULO
+   ===================================================================== */
+function detectarExcesos(logs, lim){
+  var out = [], cur = null, c = cfg.velocidad;
+  function cerrar(k, fin){ var dur = (fin - k.ini) / 1000; if (dur >= c.minSeg || k.max >= lim + c.margenGrave) out.push({ ini: k.ini, fin: fin, dur: dur, max: Math.round(k.max), lat: k.lat, lon: k.lon, grave: k.max >= lim + c.margenGrave }); }
+  logs.forEach(function(r){
+    var t = new Date(r.dateTime), v = r.speed || 0;
+    if (cur && t - cur.ult > 300000){ cerrar(cur, cur.ult); cur = null; }
+    if (v > lim){ if (!cur) cur = { ini: t, ult: t, max: v, lat: r.latitude, lon: r.longitude }; else { cur.ult = t; if (v > cur.max){ cur.max = v; cur.lat = r.latitude; cur.lon = r.longitude; } } }
+    else if (cur){ cerrar(cur, t); cur = null; }
+  });
+  if (cur) cerrar(cur, cur.ult);
+  return out;
+}
+function evaluar(u, desde, d, cual, operador){
+  var tipo = cfg.tipos[u.tipo], hasta = masDias(desde, 7), lim = tipo.vmax;
+  var dias = []; for (var i = 0; i < 7; i++) dias.push(masDias(desde, i));
+  function di(t){ return Math.floor((t - desde) / 86400000); }
+  var mejorar = [], items = [], pts = 0;
+
+  /* --- velocidad --- */
+  var exc = cfg.velocidad.estado === 'a' ? [] : detectarExcesos(d.logs, lim);
+  var maxDia = dias.map(function(){ return null; }), sumDia = dias.map(function(){ return 0; }), nDia = dias.map(function(){ return 0; });
+  d.logs.forEach(function(r){ var k = di(new Date(r.dateTime)); if (k < 0 || k > 6) return; var v = r.speed || 0; maxDia[k] = Math.max(maxDia[k] || 0, v); if (v > 5){ sumDia[k] += v; nDia[k]++; } });
+  var velMax = Math.round(Math.max.apply(null, [0].concat(maxDia.filter(function(v){ return v != null; }))));
+  if (cfg.velocidad.estado === 'c' && exc.length){
+    var pv = exc.reduce(function(s, e){ return s + cfg.velocidad.puntos + (e.grave ? cfg.velocidad.extraGrave : 0); }, 0); pts += pv;
+    items.push({ grupo: 'velocidad', nombre: 'Exceso de velocidad', n: exc.length, cuando: resumenDias(exc.map(function(e){ return e.ini; })) + ' · máx. ' + velMax + ' km/h', fuente: 'Telemetría', pts: pv });
+    mejorar.push('Velocidad: ' + exc.length + (exc.length === 1 ? ' exceso' : ' excesos') + ' sobre ' + lim + ' km/h; la máxima fue <b>' + velMax + ' km/h</b>' + (function(){ var e = exc.slice().sort(function(a, b){ return b.max - a.max; })[0]; return ' el ' + ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][e.ini.getDay()] + ' ' + e.ini.getDate(); })() + '.');
+  }
+
+  /* --- reglas de excepción --- */
+  var eventos = [];
+  cfg.reglas.forEach(function(r){ if (r.estado === 'a') return; (d.exc[r.id] || []).forEach(function(e){ eventos.push({ regla: r, ini: new Date(e.activeFrom), dur: durSeg(e.duration) }); }); });
+  eventos.sort(function(a, b){ return a.ini - b.ini; });
+  var porGrupoDia = {};
+  cfg.reglas.forEach(function(r){
+    if (r.estado !== 'c') return;
+    var evs = eventos.filter(function(e){ return e.regla.id === r.id; });
+    if (r.cuenta === 'dia'){ var g = porGrupoDia[r.grupo] = porGrupoDia[r.grupo] || { dias: {}, puntos: 0, fuentes: {} }; g.puntos = Math.max(g.puntos, r.puntos); evs.forEach(function(e){ g.dias[ymd(e.ini)] = e.ini; g.fuentes[r.fuente] = 1; }); }
+    else if (evs.length){ var p = evs.length * r.puntos; pts += p; items.push({ grupo: r.grupo, nombre: r.nombre, n: evs.length, cuando: resumenDias(evs.map(function(e){ return e.ini; }), true), fuente: r.fuente, pts: p }); }
+  });
+  Object.keys(porGrupoDia).forEach(function(gk){
+    var g = porGrupoDia[gk], ks = Object.keys(g.dias); if (!ks.length) return;
+    var p = ks.length * g.puntos; pts += p;
+    items.push({ grupo: gk, nombre: gk === 'cinturon' ? 'Sin cinturón de seguridad' : gk === 'obstruccion' ? 'Cámara obstruida' : GRUPOS[gk], n: ks.length, unidadN: 'días', cuando: resumenDias(ks.map(function(k){ return g.dias[k]; })), fuente: Object.keys(g.fuentes).join(' y '), pts: p });
+  });
+  var porGrupo = {}; items.forEach(function(it){ (porGrupo[it.grupo] = porGrupo[it.grupo] || []).push(it); });
+  if (porGrupo.conducta) mejorar.push('Cámara: ' + porGrupo.conducta.map(function(it){ return (it.nombre === 'Uso de celular' ? '<b style="color:#B3312C">' : '<b>') + it.nombre.toLowerCase() + ' (' + it.n + ')</b>'; }).join(', ') + '.');
+  if (porGrupo.cinturon) mejorar.push('Cinturón: sin cinturón en <b>' + porGrupo.cinturon[0].n + (porGrupo.cinturon[0].n === 1 ? ' día' : ' días') + '</b>.');
+  if (porGrupo.obstruccion) mejorar.push('Cámara obstruida o tapada en <b>' + porGrupo.obstruccion[0].n + (porGrupo.obstruccion[0].n === 1 ? ' día' : ' días') + '</b>. La cámara al conductor y al camino deben estar libres.');
+  if (porGrupo.habitos) mejorar.push('Manejo brusco: ' + porGrupo.habitos.map(function(it){ return it.n + ' ' + it.nombre.toLowerCase(); }).join(', ') + '.');
+  var seguridad = clamp(100 - pts);
+  var incidencias = items.reduce(function(s, it){ return s + it.n; }, 0);
+
+  /* --- rendimientos --- */
+  var km = 0, manejo = 0, ral = 0, kmDia = dias.map(function(){ return 0; }), ralDia = dias.map(function(){ return 0; }), manDia = dias.map(function(){ return 0; }), conViaje = dias.map(function(){ return false; });
+  d.trips.forEach(function(t){ var k = di(new Date(t.start)), dk = t.distance || 0, dv = durSeg(t.drivingDuration), id = durSeg(t.idlingDuration); km += dk; manejo += dv; ral += id; if (k >= 0 && k < 7){ kmDia[k] += dk; ralDia[k] += id; manDia[k] += dv; conViaje[k] = true; } });
+  var ralPct = (manejo + ral) ? ral / (manejo + ral) * 100 : null;
+  var kml = (d.litros && km > 0) ? km / d.litros : null; if (kml != null && (kml < 0.5 || kml > 40)) kml = null;
+  var sKml = kml == null ? null : clamp(kml / tipo.kml * 100);
+  var cr = cfg.ralenti, sRal = ralPct == null ? null : ralPct <= cr.metaPct ? 100 : ralPct >= cr.maxPct ? 0 : 100 * (cr.maxPct - ralPct) / (cr.maxPct - cr.metaPct);
+  var sKm = d.trips.length ? clamp(km / tipo.kmSemana * 100) : null;
+  var rendimientos = promedio([sKml, sRal, sKm]);
+  var partesComb = [];
+  if (kml != null && kml < tipo.kml) partesComb.push('<b>' + n1(kml) + ' km/L</b> contra meta de ' + n1(tipo.kml));
+  if (ralPct != null && ralPct > cr.metaPct) partesComb.push('motor en ralentí ' + Math.round(ralPct) + '% del tiempo (meta ' + cr.metaPct + '%)');
+  if (partesComb.length) mejorar.push('Combustible: ' + partesComb.join('; ') + '.');
+
+  /* --- servicio --- */
+  var viajes = d.filas.map(function(f){
+    var zO = zonaPara(f.cliente, f.origen), zD = zonaPara(f.cliente, f.destino), ref = f.llegO || f.fecha;
+    var trips = d.trips.map(function(t){ return { ini: new Date(t.start), fin: new Date(t.stop), pt: t.stopPoint }; });
+    var llegG = null, salG = null, arrG = null;
+    if (zO){ var best = null; trips.forEach(function(t){ var dd = Math.abs(t.fin - ref); if (dd <= 12 * 3600000 && dentro(t.pt, zO) && (!best || dd < Math.abs(best - ref))) best = t.fin; }); llegG = best; }
+    if (llegG){ var s = trips.find(function(t){ return t.ini >= llegG && !dentro(t.pt, zO); }); salG = s ? s.ini : null; }
+    if (salG && zD){ var a = trips.find(function(t){ return t.ini >= salG && dentro(t.pt, zD); }); arrG = a ? a.fin : null; }
+    var sal = salG || f.salO, arr = arrG || f.arrD, trans = (sal && arr && arr > sal) ? (arr - sal) / 3600000 : null;
+    var std = d.std[claveRuta(f)], transOk = (trans != null && std) ? trans <= std.h * (1 + cfg.servicio.tolTransitoPct / 100) : null;
+    var lleg = llegG || f.llegO, tarde = (f.cita && lleg) ? (lleg - f.cita) / 60000 : null, aTiempo = tarde == null ? null : tarde <= cfg.servicio.tolLlegadaMin;
+    return { rkt: f.rkt, cliente: f.cliente, ruta: f.origen + ' – ' + f.destino, cita: f.cita, lleg: lleg, llegG: llegG, llegC: f.llegO, tarde: tarde, aTiempo: aTiempo,
+             trans: trans, std: std ? std.h : null, stdN: std ? std.n : 0, transOk: transOk, fuente: (salG && arrG) ? 'GPS' : 'control', zO: zO ? zO.name : null, zD: zD ? zD.name : null };
+  });
+  var conL = viajes.filter(function(v){ return v.aTiempo != null; }), conT = viajes.filter(function(v){ return v.transOk != null; });
+  var sLleg = conL.length ? conL.filter(function(v){ return v.aTiempo; }).length / conL.length * 100 : null;
+  var sTrans = conT.length ? conT.filter(function(v){ return v.transOk; }).length / conT.length * 100 : null;
+  var servicio = promedio([sLleg, sTrans]);
+  var malos = [];
+  viajes.forEach(function(v){ if (v.aTiempo === false) malos.push(v.rkt + ' llegó <b>' + minTxt(v.tarde) + ' tarde</b>'); if (v.transOk === false) malos.push(v.rkt + ' tardó <b>' + minTxt((v.trans - v.std) * 60) + ' de más</b> en tránsito'); });
+  if (malos.length) mejorar.push('Servicio: ' + malos.join('; ') + '.');
+
+  /* --- cualitativo --- */
+  var cq = cfg.cualitativo;
+  var cualitativo = clamp(100 - (cual.instr === 'no' ? cq.instruccionesNo : 0) - cual.multas * cq.porMulta - cual.danios * cq.porDanio - (cual.mtto === 'no' ? cq.reportesNo : 0));
+  var fallasC = [];
+  if (cual.instr === 'no') fallasC.push('no siguió instrucciones'); if (cual.multas) fallasC.push(cual.multas + (cual.multas === 1 ? ' multa' : ' multas')); if (cual.danios) fallasC.push(cual.danios + (cual.danios === 1 ? ' daño' : ' daños')); if (cual.mtto === 'no') fallasC.push('no entregó reporte de mtto.');
+  if (fallasC.length) mejorar.push('Supervisor: ' + fallasC.join(', ') + '.');
+
+  var P = cfg.pesos;
+  var total = pesado([[seguridad, P.seguridad], [rendimientos, P.rendimientos], [servicio, P.servicio], [cualitativo, P.cualitativo]]);
+  total = total == null ? null : Math.round(total);
+  var com = comisionDe(total);
+
+  return {
+    u: u, desde: desde, hasta: hasta, dias: dias, operador: operador, tipo: tipo, lim: lim,
+    exc: exc, maxDia: maxDia, avgDia: sumDia.map(function(s, i){ return nDia[i] ? s / nDia[i] : (conViaje[i] ? 0 : null); }), velMax: velMax, eventos: eventos, items: items, pts: pts, incidencias: incidencias,
+    km: km, kmDia: kmDia, ralDia: ralDia, manDia: manDia, conViaje: conViaje, ralPct: ralPct, litros: d.litros, kml: kml, sKml: sKml, sRal: sRal, sKm: sKm,
+    viajes: viajes, sLleg: sLleg, sTrans: sTrans, cual: cual, mejorar: mejorar,
+    rubros: { seguridad: seguridad, rendimientos: rendimientos, servicio: servicio, cualitativo: cualitativo },
+    total: total, com: com, controlError: d.control.error
+  };
+}
+function resumenDias(fechas, conHora){
+  var m = {}; fechas.forEach(function(f){ var k = ymd(f); (m[k] = m[k] || []).push(f); });
+  return Object.keys(m).sort().map(function(k){ var l = m[k], t = diaTxt(l[0]); t = t.charAt(0).toUpperCase() + t.slice(1); return conHora && l.length === 1 ? t + ', ' + hora(l[0]) : t + (l.length > 1 ? ' (' + l.length + ')' : ''); }).join(', ');
+}
+
+/* =====================================================================
+   EVALUACIÓN SEMANAL: REPORTE (formato Rocket)
+   ===================================================================== */
+function cabecera(der1, der2){ return '<div class="h-cab"><img src="' + LOGO + '" alt="Rocket Logistics"><div class="der"><b>' + esc(der1) + '</b><span>' + esc(der2) + '</span></div></div><div class="rule"></div>'; }
+function kpi(color, valor, txt, colorTxt){ return '<div class="kpi" style="--c:' + color + (colorTxt ? ';--t:' + colorTxt : '') + '"><b>' + valor + '</b><span>' + txt + '</span></div>'; }
+function puntosTd(v){ var n = nivel(v); return '<td class="der" style="font-weight:700;color:' + (n === 'mal' ? '#B3312C' : n === 'bien' ? '#4E9461' : '#222') + '">' + (v == null ? 'Sin dato' : Math.round(v)) + '</td>'; }
+function renderSemana(e){
+  var u = e.u, fin = masDias(e.desde, 6), sem = semanaISO(e.desde), P = cfg.pesos, t = e.tipo;
+  var flot = { T: 'Flotilla Tractos', V: 'Flotilla Vans', R: 'Flotilla R', C: 'Flotilla C' }[u.tipo];
+  var etq = e.dias.map(diaTxt), sombra = []; e.conViaje.forEach(function(c, i){ if (!c) sombra.push(i); });
+  var iMax = e.maxDia.indexOf(Math.max.apply(null, e.maxDia.map(function(v){ return v || 0; })));
+  var excMax = e.exc.slice().sort(function(a, b){ return b.max - a.max; })[0];
+
+  var p1 = '<div class="hoja">' + cabecera('rocketlogistics.xyz', 'SOLUCIONES DE TRANSPORTE Y LOGÍSTICA · ' + flot + ' · Semana ' + sem + ', ' + e.desde.getFullYear()) +
+    '<div class="h-tit"><h1>Evaluación semanal – ' + esc(e.operador || 'Operador sin identificar') + '</h1><div>Unidad ' + esc(u.eco) + ' (' + esc(t.nombre.toLowerCase()) + ', límite ' + e.lim + ' km/h)  |  Semana del ' + rangoTxt(e.desde, fin) + '  |  ' + e.viajes.length + ' viajes  |  Emisión: ' + ymd(new Date()) + '</div></div>' +
+    '<div class="kpis">' + kpi('#3E64B4', (e.total == null ? '—' : e.total) + ' <small>de 100</small>', 'calificación de la semana') + kpi('#4A8DA3', e.com.pct + '%', 'comisión a pagar', '#3F7F94') +
+      kpi('#5CA36E', e.kml == null ? 'Sin dato' : n1(e.kml) + ' km/L', 'rendimiento (meta ' + t.nombre.toLowerCase() + ' ' + n1(t.kml) + ' km/L)', '#4E9461') + kpi('#B3312C', e.incidencias, 'incidencias de seguridad') + '</div>' +
+    '<div class="h-sec"><h2>Lo que debes mejorar</h2>' + (e.mejorar.length ? '<ul>' + e.mejorar.map(function(m){ return '<li>' + m + '</li>'; }).join('') + '</ul>' : '<div>Semana sin observaciones. Sigue así.</div>') + '</div>' +
+    '<div class="h-sec"><h2>Calificación por rubro</h2><table class="t"><thead><tr><th style="width:21%">Rubro</th><th>Resultado de la semana</th><th style="width:24%">Meta</th><th class="der" style="width:9%">Puntos</th></tr></thead><tbody>' +
+      '<tr><td>Seguridad <span style="color:#666">(' + P.seguridad + '%)</span></td><td>' + (e.items.length ? e.items.map(function(it){ return it.grupo === 'velocidad' ? it.n + (it.n === 1 ? ' exceso' : ' excesos') : it.unidadN ? it.nombre.toLowerCase() + ' ' + it.n + (it.n === 1 ? ' día' : ' días') : it.nombre.toLowerCase() + ' (' + it.n + ')'; }).join(', ') : 'Sin incidencias') + '</td><td>0 incidencias</td>' + puntosTd(e.rubros.seguridad) + '</tr>' +
+      '<tr><td>Rendimientos <span style="color:#666">(' + P.rendimientos + '%)</span></td><td>' + (e.kml == null ? 'km/L sin dato' : n1(e.kml) + ' km/L') + ' · ralentí ' + (e.ralPct == null ? '—' : Math.round(e.ralPct) + '%') + ' · ' + n0(e.km) + ' km</td><td>' + n1(t.kml) + ' km/L · ' + cfg.ralenti.metaPct + '% · ' + n0(t.kmSemana) + ' km</td>' + puntosTd(e.rubros.rendimientos) + '</tr>' +
+      '<tr><td>Servicio <span style="color:#666">(' + P.servicio + '%)</span></td><td>' + servicioTxt(e) + '</td><td>Todos en tiempo</td>' + puntosTd(e.rubros.servicio) + '</tr>' +
+      '<tr><td>Cualitativo <span style="color:#666">(' + P.cualitativo + '%)</span></td><td>' + (e.rubros.cualitativo === 100 ? 'Sin multas ni daños; instrucciones y mtto. OK' : 'Con observaciones del supervisor') + '</td><td>Sin faltas</td>' + puntosTd(e.rubros.cualitativo) + '</tr>' +
+      '<tr class="tot"><td>Total</td><td>Comisión ' + e.com.pct + '%</td><td></td><td class="der">' + (e.total == null ? '—' : e.total) + '</td></tr></tbody></table>' +
+      '<div class="pie-n">Comisión: ' + cfg.comision.map(function(c, i){ return (i === cfg.comision.length - 1 ? 'menos de ' + cfg.comision[i - 1].min : c.min + ' a ' + (i ? cfg.comision[i - 1].min - 1 : 100) + ' pts') + ' = ' + c.pct + '%'; }).join('  ·  ') + '. Un rubro sin dato no cuenta y su peso se reparte.</div></div>' +
+    '<div class="h-sec"><h2>Velocidad máxima diaria</h2>' + grafLinea({ etiquetas: etq, sombra: sombra, ref: e.lim, refTxt: e.lim + ' lím.', ytxt: 'km/h', ymax: Math.max(160, e.velMax + 10), aria: 'Velocidad máxima y promedio por día',
+      series: [{ nombre: 'Velocidad máxima', color: '#3E64B4', marca: 'c', valores: e.maxDia.map(function(v, i){ return e.conViaje[i] || v ? Math.round(v || 0) : 0; }) }, { nombre: 'Promedio en movimiento', color: '#5CA36E', marca: 's', valores: e.avgDia.map(function(v){ return v == null ? 0 : Math.round(v); }) }],
+      anot: excMax ? { i: Math.floor((excMax.ini - e.desde) / 86400000), serie: 0, txt: excMax.max + ' km/h · ' + hora(excMax.ini) + ' h' } : null,
+      pie: MESES[e.desde.getMonth()].charAt(0).toUpperCase() + MESES[e.desde.getMonth()].slice(1) + ' ' + e.desde.getFullYear() + '  (gris = día sin operación)' }) + '</div>' +
+    '<div class="pie" style="margin-top:auto"><span>Fuente: telemetría MyGeotab y control de viajes</span><span>1 de 2</span></div></div>';
+
+  var incTabla = e.items.length ? '<table class="t"><thead><tr><th>Incidencia</th><th class="der">Eventos</th><th>Cuándo</th><th>Lo detectó</th></tr></thead><tbody>' +
+    e.items.map(function(it){ return '<tr><td' + (it.nombre === 'Uso de celular' ? ' class="rojo"' : '') + '>' + esc(it.nombre) + '</td><td class="der"><b>' + it.n + '</b>' + (it.unidadN ? (it.n === 1 ? ' día' : ' días') : '') + '</td><td>' + esc(it.cuando) + '</td><td>' + esc(it.fuente) + '</td></tr>'; }).join('') +
+    '<tr class="tot"><td>Total</td><td class="der">' + e.incidencias + '</td><td></td><td></td></tr></tbody></table>' : '<div class="vacio">Sin incidencias de seguridad en la semana.</div>';
+  var viajesTabla = e.viajes.length ? '<table class="t"><thead><tr><th>Viaje</th><th>Cliente</th><th>Ruta</th><th>Llegada a origen</th><th>Tránsito (real / estándar*)</th></tr></thead><tbody>' +
+    e.viajes.map(function(v){
+      var ll = v.aTiempo == null ? (v.lleg ? fechaHora(v.lleg) : '—') : v.aTiempo ? 'A tiempo' : '<span class="rojo">' + minTxt(v.tarde) + ' tarde</span>';
+      var tr = v.trans == null ? '—' : v.std == null ? hm(v.trans) + ' / sin estándar' : (v.transOk === false ? '<span class="rojo">' + hm(v.trans) + ' / ' + hm(v.std) + ' (' + minTxt((v.trans - v.std) * 60) + ' de más)</span>' : hm(v.trans) + ' / ' + hm(v.std));
+      return '<tr><td>' + esc(v.rkt) + '</td><td>' + esc(v.cliente) + '</td><td>' + esc(v.ruta) + '</td><td>' + ll + '</td><td>' + tr + '</td></tr>';
+    }).join('') + '</tbody></table><div class="pie-n">* Estándar provisional: mediana de los últimos 90 días del control para la misma ruta (mínimo 3 viajes). Llegada a origen: se califica solo si el control trae cita (hasta ' + cfg.servicio.tolLlegadaMin + ' min de tolerancia). Tránsito en tiempo = hasta ' + cfg.servicio.tolTransitoPct + '% sobre el estándar.</div>'
+    : '<div class="vacio">' + (e.controlError ? esc(e.controlError) : 'Sin viajes de esta unidad en el control de viajes para la semana.') + '</div>';
+  var p2 = '<div class="hoja">' + cabecera(e.operador || 'Operador sin identificar', 'Unidad ' + u.eco + ' · Semana del ' + rangoTxt(e.desde, fin)) +
+    '<div class="h-sec"><h2>Incidencias de seguridad</h2>' + incTabla + '</div>' +
+    '<div class="h-sec"><h2>Viajes de la semana</h2>' + viajesTabla + '</div>' +
+    '<div class="h-sec"><h2>Kilómetros y ralentí por día</h2>' + grafBarras({ etiquetas: etq, valores: e.kmDia.map(Math.round), sombra: sombra, ytxt: 'km', subTxt: 'Ralentí', aria: 'Kilómetros y ralentí por día',
+      sub: e.kmDia.map(function(k, i){ var tot = e.manDia[i] + e.ralDia[i]; if (!tot) return { txt: '–', color: '#555' }; var p = e.ralDia[i] / tot * 100; return { txt: Math.round(p) + '%', color: p > cfg.ralenti.metaPct ? '#B3312C' : '#4E9461' }; }) }) +
+      '<div class="pie-n">Barras: km recorridos. Ralentí: % del tiempo con motor encendido sin avanzar; en rojo cuando pasa la meta de ' + cfg.ralenti.metaPct + '%.</div></div>' +
+    '<div class="firmas"><div>Firma del operador</div><div>Firma del supervisor</div></div>' +
+    '<div class="pie"><span>Fuente: telemetría MyGeotab y control de viajes</span><span>2 de 2</span></div></div>';
+
+  /* detalle interactivo (no va al PDF) */
+  var det = '<div class="caja detalle"><h2 class="sec">Detalle para investigar</h2><p class="nota" style="margin-top:0">Incluye reglas en “Solo mostrar”. No sale en el PDF.</p>' +
+    (e.exc.length || e.eventos.length ? '<div class="scroll"><table class="t2"><thead><tr><th>Evento</th><th>Fecha y hora</th><th>Detalle</th><th>En la evaluación</th><th></th></tr></thead><tbody>' +
+      e.exc.map(function(x){ var k = x.lat != null ? x.lat.toFixed(4) + ',' + x.lon.toFixed(4) : ''; return '<tr><td><b>Exceso de velocidad</b></td><td>' + fechaHora(x.ini) + '</td><td>' + x.max + ' km/h, ' + minTxt(x.dur / 60) + (direcciones[k] ? ', ' + esc(direcciones[k]) : '') + '</td><td>' + (x.grave ? '<span class="etq c-mal">grave</span>' : '<span class="etq c-reg">califica</span>') + '</td><td>' + btnMapa(x.ini, x.fin) + '</td></tr>'; }).join('') +
+      e.eventos.map(function(x){ return '<tr><td><b>' + esc(x.regla.nombre) + '</b><br><span class="nota">' + esc(x.regla.fuente) + '</span></td><td>' + fechaHora(x.ini) + '</td><td>' + (x.dur ? Math.round(x.dur) + ' s' : '') + '</td><td>' + (x.regla.estado === 'c' ? '<span class="etq c-mal">califica</span>' : '<span class="etq c-na">solo mostrar</span>') + '</td><td>' + btnMapa(x.ini, new Date(x.ini.getTime() + Math.max(x.dur, 60) * 1000)) + '</td></tr>'; }).join('') +
+      '</tbody></table></div>' : '<div class="vacio">Sin eventos en la semana.</div>') +
+    (e.viajes.length ? '<h2 class="sec" style="margin-top:14px">Viajes: control contra GPS</h2><div class="scroll"><table class="t2"><thead><tr><th>Viaje</th><th>Geocerca origen / destino</th><th>Llegada origen control / GPS</th><th>Tránsito</th><th>Fuente</th></tr></thead><tbody>' +
+      e.viajes.map(function(v){ var dif = v.llegC && v.llegG ? Math.round((v.llegC - v.llegG) / 60000) : null; return '<tr><td><b>' + esc(v.rkt) + '</b><br><span class="nota">' + esc(v.cliente + ', ' + v.ruta) + '</span></td><td>' + esc(v.zO || 'sin geocerca') + '<br>' + esc(v.zD || 'sin geocerca') + '</td><td>' + (v.llegC ? hora(v.llegC) : '—') + ' / ' + (v.llegG ? hora(v.llegG) : '—') + (dif != null && Math.abs(dif) > 15 ? '<br><span class="rojo">diferencia ' + dif + ' min</span>' : '') + '</td><td>' + hm(v.trans) + '</td><td>' + v.fuente + '</td></tr>'; }).join('') +
+      '</tbody></table></div>' : '') + '</div>';
+
+  $('#eo-reporteSemana').innerHTML = '<div class="hojas" id="eo-hojasSemana">' + p1 + p2 + '</div><div style="margin-top:16px">' + det + '</div>';
+  completarDirecciones(e);
+}
+function servicioTxt(e){
+  if (!e.viajes.length) return e.controlError ? 'Sin control de viajes' : 'Sin viajes en el control';
+  var nL = e.viajes.filter(function(v){ return v.aTiempo != null; }), nT = e.viajes.filter(function(v){ return v.transOk != null; });
+  var a = nL.length ? nL.filter(function(v){ return v.aTiempo; }).length + ' de ' + nL.length + ' a tiempo' : 'llegada sin cita';
+  var b = nT.length ? nT.filter(function(v){ return v.transOk; }).length + ' de ' + nT.length + ' en tránsito' : 'tránsito sin estándar';
+  return a + ' · ' + b;
+}
+function btnMapa(a, b){ return '<button class="btn-mapa" data-mapa="1" data-desde="' + new Date(a.getTime() - 300000).toISOString() + '" data-hasta="' + new Date(b.getTime() + 300000).toISOString() + '">Ver en mapa</button>'; }
+function completarDirecciones(e){
+  var falt = e.exc.filter(function(x){ return x.lat != null && direcciones[x.lat.toFixed(4) + ',' + x.lon.toFixed(4)] === undefined; }).slice(0, 30);
+  if (!falt.length) return;
+  falt.forEach(function(x){ direcciones[x.lat.toFixed(4) + ',' + x.lon.toFixed(4)] = null; });
+  llamar('GetAddresses', { coordinates: falt.map(function(x){ return { x: x.lon, y: x.lat }; }) }).then(function(r){
+    (r || []).forEach(function(a, i){ if (a && a.formattedAddress) direcciones[falt[i].lat.toFixed(4) + ',' + falt[i].lon.toFixed(4)] = a.formattedAddress; });
+    if (ultimaEval === e) renderSemana(e);
+  }).catch(function(){});
+}
+
+function generarSemana(){
+  if (!unidadSel){ estado('Elige una unidad de la lista.', true); return Promise.resolve(); }
+  var desde = lunes(deYmd($('#eo-semana').value)); $('#eo-semana').value = ymd(desde);
+  $('#eo-btnGenerar').disabled = true; $('#eo-btnGuardar').disabled = true; $('#eo-btnPdf').disabled = true;
+  estado('Consultando ' + unidadSel.eco + ': viajes, velocidad, eventos, combustible y control de viajes…');
+  var u = unidadSel;
+  return datosSemana(u, desde).then(function(d){
+    var op = $('#eo-operador');
+    if (op.dataset.auto !== '0'){
+      var cuenta = {}; d.filas.forEach(function(f){ if (f.operador) cuenta[f.operador] = (cuenta[f.operador] || 0) + 1; });
+      var top = Object.keys(cuenta).sort(function(a, b){ return cuenta[b] - cuenta[a]; })[0];
+      op.value = top || u.operadorMyG || ''; op.dataset.auto = '1';
+      $('#eo-operadorNota').textContent = top ? 'Del control de viajes (' + d.filas.length + ' viajes).' + (u.operadorMyG && norm(u.operadorMyG) !== norm(top) ? ' En MyGeotab la unidad dice “' + u.nombre + '”.' : '') : u.operadorMyG ? 'Del nombre de la unidad en MyGeotab.' : 'Escribe el nombre del operador.';
+    }
+    var guardada = historial.find(function(h){ return h.deviceId === u.id && h.semana === ymd(desde); });
+    if (guardada && guardada.cual){ $('#eo-qInstr').value = guardada.cual.instr; $('#eo-qMultas').value = guardada.cual.multas; $('#eo-qDanios').value = guardada.cual.danios; $('#eo-qMtto').value = guardada.cual.mtto; }
+    ultimaEval = evaluar(u, desde, d, leerCual(), op.value.trim());
+    ultimaEval._datos = d;
+    renderSemana(ultimaEval);
+    estado(u.eco + ': ' + d.trips.length + ' viajes de GPS, ' + d.filas.length + ' viajes en el control' + (d.control.error ? ' (' + d.control.error + ')' : '') + (guardada ? '. Ya hay una evaluación guardada de esta semana; si guardas, se reemplaza.' : '.'), !!d.control.error);
+    $('#eo-btnGuardar').disabled = false; $('#eo-btnPdf').disabled = false;
+  }).catch(function(err){ console.error(err); estado('No se pudo consultar MyGeotab: ' + (err && err.message ? err.message : err), true); })
+    .then(function(){ $('#eo-btnGenerar').disabled = false; });
+}
+function leerCual(){ return { instr: $('#eo-qInstr').value, multas: Math.max(0, +$('#eo-qMultas').value || 0), danios: Math.max(0, +$('#eo-qDanios').value || 0), mtto: $('#eo-qMtto').value }; }
+function recalcular(){ if (!ultimaEval) return; var d = ultimaEval._datos; ultimaEval = evaluar(ultimaEval.u, ultimaEval.desde, d, leerCual(), $('#eo-operador').value.trim()); ultimaEval._datos = d; renderSemana(ultimaEval); }
+
+function guardarSemana(){
+  var e = ultimaEval; if (!e) return;
+  if (!e.operador){ toast('Escribe el nombre del operador antes de guardar.'); $('#eo-operador').focus(); return; }
+  var g = {}; e.items.forEach(function(it){ g[it.grupo] = (g[it.grupo] || 0) + it.n; });
+  var reg = {
+    tipo: 'eval', v: 1, semana: ymd(e.desde), mes: mesDeSemana(e.desde), deviceId: e.u.id, eco: e.u.eco, unidad: e.u.nombre, tipoUnidad: e.u.tipo,
+    operador: e.operador, opClave: norm(e.operador), total: e.total, comision: e.com.pct,
+    rubros: { seguridad: r1(e.rubros.seguridad), rendimientos: r1(e.rubros.rendimientos), servicio: r1(e.rubros.servicio), cualitativo: r1(e.rubros.cualitativo) },
+    km: Math.round(e.km), litros: e.litros == null ? null : Math.round(e.litros * 10) / 10, kml: e.kml == null ? null : Math.round(e.kml * 100) / 100,
+    ralPct: e.ralPct == null ? null : Math.round(e.ralPct * 10) / 10, incidencias: e.incidencias, porGrupo: g, velMax: e.velMax, viajes: e.viajes.length,
+    cual: e.cual, cfg: { pesos: cfg.pesos, reglas: cfg.reglas.filter(function(r){ return r.estado === 'c'; }).map(function(r){ return r.id; }) },
+    guardadoEl: new Date().toISOString(), guardadoPor: (pageState && pageState.userName) || (api && api.userName) || ''
+  };
+  var previa = historial.find(function(h){ return h.deviceId === reg.deviceId && h.semana === reg.semana; });
+  $('#eo-btnGuardar').disabled = true;
+  guardarDato(reg, previa && previa._id).then(function(id){
+    reg._id = id; historial = historial.filter(function(h){ return h !== previa; }); historial.push(reg);
+    toast('Evaluación guardada en el historial'); pintarUnidades();
+  }).catch(function(err){ toast('No se pudo guardar: ' + (err.message || err)); }).then(function(){ $('#eo-btnGuardar').disabled = false; });
+}
+function r1(v){ return v == null ? null : Math.round(v * 10) / 10; }
+
+/* =====================================================================
+   PDF
+   ===================================================================== */
+function descargarPdf(contenedorId, nombre){
+  var el = $('#' + contenedorId); if (!el) return;
+  if (typeof html2pdf === 'undefined'){ toast('Cargando generador de PDF…'); cargarScript(URL_HTML2PDF).then(function(){ descargarPdf(contenedorId, nombre); }).catch(function(){ toast('No se pudo cargar el generador de PDF'); }); return; }
+  el.classList.add('pdf');
+  var hojas = el.querySelectorAll('.hoja'); hojas.forEach(function(h, i){ if (i < hojas.length - 1) h.style.pageBreakAfter = 'always'; });
+  toast('Generando PDF…');
+  html2pdf().set({ margin: 0, filename: nombre.replace(/[^\w\-]+/g, '_') + '.pdf', image: { type: 'jpeg', quality: 0.96 },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 900 },
+    jsPDF: { unit: 'px', format: [816, 1056], orientation: 'portrait', hotfixes: ['px_scaling'] }, pagebreak: { mode: ['css'] } })
+    .from(el).save().catch(function(e){ toast('No se pudo crear el PDF: ' + e.message); })
+    .then(function(){ el.classList.remove('pdf'); hojas.forEach(function(h){ h.style.pageBreakAfter = ''; }); });
+}
+
+/* =====================================================================
+   EVALUACIÓN MENSUAL
+   ===================================================================== */
+var mesModo = 'op';
+function entidades(modo){
+  var m = {};
+  historial.forEach(function(h){ var k = modo === 'op' ? h.opClave : h.deviceId; if (!m[k]) m[k] = { clave: k, nombre: modo === 'op' ? h.operador : h.eco, n: 0 }; m[k].n++; });
+  return Object.keys(m).map(function(k){ return m[k]; }).sort(function(a, b){ return a.nombre.localeCompare(b.nombre); });
+}
+function pintarEntidadesMes(){
+  var l = entidades(mesModo);
+  $('#eo-mesEntLbl').textContent = mesModo === 'op' ? 'Operador' : 'Unidad';
+  $('#eo-mesEntidad').innerHTML = l.length ? l.map(function(x){ return '<option value="' + esc(x.clave) + '">' + esc(x.nombre) + ' (' + x.n + ' semanas)</option>'; }).join('') : '<option value="">Aún no hay evaluaciones guardadas</option>';
+}
+function semanasDe(modo, clave, mes){ return historial.filter(function(h){ return (modo === 'op' ? h.opClave : h.deviceId) === clave && h.mes === mes; }).sort(function(a, b){ return a.semana < b.semana ? -1 : 1; }); }
+function resumenMes(ws){
+  if (!ws.length) return null;
+  var r = {}; ['seguridad', 'rendimientos', 'servicio', 'cualitativo'].forEach(function(k){ r[k] = promedio(ws.map(function(w){ return w.rubros[k]; })); });
+  var km = ws.reduce(function(s, w){ return s + (w.km || 0); }, 0), conL = ws.filter(function(w){ return w.litros; });
+  var kmL = conL.reduce(function(s, w){ return s + w.km; }, 0), lt = conL.reduce(function(s, w){ return s + w.litros; }, 0);
+  var g = {}; ws.forEach(function(w){ Object.keys(w.porGrupo || {}).forEach(function(k){ g[k] = (g[k] || 0) + w.porGrupo[k]; }); });
+  return { total: promedio(ws.map(function(w){ return w.total; })), rubros: r, km: km, kml: lt ? kmL / lt : null, incidencias: ws.reduce(function(s, w){ return s + (w.incidencias || 0); }, 0), porGrupo: g,
+           ralPct: promedio(ws.map(function(w){ return w.ralPct; })), viajes: ws.reduce(function(s, w){ return s + (w.viajes || 0); }, 0), conDescuento: ws.filter(function(w){ return w.comision < 100; }).length };
+}
+function mesAnterior(m){ var p = m.split('-'), d = new Date(+p[0], +p[1] - 2, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+function mesTxt(m){ var p = m.split('-'); return MESES[+p[1] - 1] + ' ' + p[0]; }
+function verMes(){
+  var clave = $('#eo-mesEntidad').value, mes = $('#eo-mes').value;
+  if (!clave || !mes){ $('#eo-reporteMes').innerHTML = '<div class="caja" style="margin-top:14px"><div class="vacio">Elige ' + (mesModo === 'op' ? 'un operador' : 'una unidad') + ' y un mes. Si no aparece nadie, primero guarda evaluaciones semanales.</div></div>'; return; }
+  var ws = semanasDe(mesModo, clave, mes), ant = semanasDe(mesModo, clave, mesAnterior(mes));
+  var R = resumenMes(ws), A = resumenMes(ant);
+  var nombre = (entidades(mesModo).find(function(x){ return x.clave === clave; }) || {}).nombre || '';
+  if (!R){ $('#eo-reporteMes').innerHTML = '<div class="caja" style="margin-top:14px"><div class="vacio">No hay semanas guardadas de ' + esc(nombre) + ' en ' + mesTxt(mes) + '.</div></div>'; $('#eo-btnMesPdf').disabled = true; return; }
+  var dif = A ? R.total - A.total : null;
+  var unidadesUsadas = Array.from(new Set(ws.map(function(w){ return w.eco; }))).join(', '), operadoresUsados = Array.from(new Set(ws.map(function(w){ return w.operador; }))).join(', ');
+  var tipoMeta = cfg.tipos[ws[0].tipoUnidad] || cfg.tipos.T;
+  var mejoro = [], empeoro = [];
+  var NOM = { seguridad: 'Seguridad', rendimientos: 'Rendimientos', servicio: 'Servicio', cualitativo: 'Cualitativo' };
+  if (A) Object.keys(NOM).forEach(function(k){ var a = A.rubros[k], b = R.rubros[k]; if (a == null || b == null) return; var dd = b - a; if (dd >= 3) mejoro.push(NOM[k] + ': de ' + Math.round(a) + ' a <b>' + Math.round(b) + '</b> pts'); else if (dd <= -3) empeoro.push(NOM[k] + ': de ' + Math.round(a) + ' a <b>' + Math.round(b) + '</b> pts'); });
+  if (A && A.kml != null && R.kml != null){ var dk = R.kml - A.kml; if (dk >= 0.1) mejoro.push('Rendimiento: de ' + n1(A.kml) + ' a <b>' + n1(R.kml) + ' km/L</b>'); else if (dk <= -0.1) empeoro.push('Rendimiento: de ' + n1(A.kml) + ' a <b>' + n1(R.kml) + ' km/L</b>'); }
+  if (A){ Object.keys(GRUPOS).forEach(function(k){ var a = A.porGrupo[k] || 0, b = R.porGrupo[k] || 0; if (b < a) mejoro.push(GRUPOS[k] + ': de ' + a + ' a <b>' + b + '</b> incidencias'); else if (b > a) empeoro.push(GRUPOS[k] + ': de ' + a + ' a <b>' + b + '</b> incidencias'); }); }
+  var etq = ws.map(function(w){ var d = deYmd(w.semana); return 'Sem ' + semanaISO(d) + ' (' + d.getDate() + ' ' + MES3[d.getMonth()] + ')'; });
+  var html = '<div class="hojas" id="eo-hojasMes"><div class="hoja">' + cabecera('rocketlogistics.xyz', 'SOLUCIONES DE TRANSPORTE Y LOGÍSTICA · Evaluación mensual · ' + mesTxt(mes)) +
+    '<div class="h-tit"><h1>Evaluación mensual – ' + esc(nombre) + '</h1><div>' + (mesModo === 'op' ? 'Unidades: ' + esc(unidadesUsadas) : 'Operadores: ' + esc(operadoresUsados)) + '  |  ' + mesTxt(mes) + '  |  ' + ws.length + ' semanas evaluadas, ' + R.viajes + ' viajes  |  Emisión: ' + ymd(new Date()) + '</div></div>' +
+    '<div class="kpis">' + kpi('#3E64B4', Math.round(R.total) + ' <small>de 100</small>', 'calificación del mes (promedio)') +
+      kpi('#4A8DA3', dif == null ? 'Primer mes' : (dif >= 0 ? '+' : '') + Math.round(dif) + ' pts', dif == null ? 'sin mes anterior guardado' : 'contra ' + mesTxt(mesAnterior(mes)), dif == null ? '#3F7F94' : dif >= 0 ? '#4E9461' : '#B3312C') +
+      kpi('#5CA36E', R.kml == null ? 'Sin dato' : n1(R.kml) + ' km/L', 'rendimiento del mes (meta ' + n1(tipoMeta.kml) + ')', '#4E9461') + kpi('#B3312C', R.incidencias, 'incidencias de seguridad') + '</div>' +
+    '<div class="h-sec"><h2>Cómo te fue contra el mes anterior</h2>' + (A ? ((mejoro.length ? '<div><b style="color:#4E9461">Mejoró</b><ul>' + mejoro.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ul></div>' : '') + (empeoro.length ? '<div><b style="color:#B3312C">Empeoró</b><ul>' + empeoro.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ul></div>' : '') + (!mejoro.length && !empeoro.length ? '<div>Sin cambios importantes contra ' + mesTxt(mesAnterior(mes)) + '.</div>' : '')) : '<div>No hay evaluaciones guardadas de ' + mesTxt(mesAnterior(mes)) + ' para comparar.</div>') + '</div>' +
+    '<div class="h-sec"><h2>Semana por semana</h2><table class="t"><thead><tr><th>Semana</th><th>' + (mesModo === 'op' ? 'Unidad' : 'Operador') + '</th><th class="der">Seguridad</th><th class="der">Rend.</th><th class="der">Servicio</th><th class="der">Cualit.</th><th class="der">km/L</th><th class="der">Total</th><th class="der">Comisión</th></tr></thead><tbody>' +
+      ws.map(function(w, i){ return '<tr><td>' + etq[i] + '</td><td>' + esc(mesModo === 'op' ? w.eco : w.operador) + '</td>' + ['seguridad', 'rendimientos', 'servicio', 'cualitativo'].map(function(k){ return puntosTd(w.rubros[k]); }).join('') + '<td class="der">' + (w.kml == null ? '—' : n1(w.kml)) + '</td>' + puntosTd(w.total) + '<td class="der">' + w.comision + '%</td></tr>'; }).join('') +
+      '<tr class="tot"><td>Mes</td><td></td>' + ['seguridad', 'rendimientos', 'servicio', 'cualitativo'].map(function(k){ return '<td class="der">' + (R.rubros[k] == null ? '—' : Math.round(R.rubros[k])) + '</td>'; }).join('') + '<td class="der">' + (R.kml == null ? '—' : n1(R.kml)) + '</td><td class="der">' + Math.round(R.total) + '</td><td class="der">' + R.conDescuento + ' con desc.</td></tr></tbody></table></div>' +
+    '<div class="h-sec"><h2>Calificación semanal</h2>' + grafLinea({ etiquetas: etq, ymax: 100, ytxt: 'puntos', ref: A ? Math.round(A.total) : null, refTxt: A ? 'promedio ' + MES3[+mesAnterior(mes).split('-')[1] - 1] + ': ' + Math.round(A.total) : '', aria: 'Calificación por semana del mes', alto: 240,
+      series: [{ nombre: 'Total', color: '#3E64B4', marca: 'c', valores: ws.map(function(w){ return w.total; }) }, { nombre: 'Seguridad', color: '#5CA36E', marca: 's', valores: ws.map(function(w){ return w.rubros.seguridad == null ? null : Math.round(w.rubros.seguridad); }) }] }) + '</div>' +
+    '<div class="firmas"><div>Firma del operador</div><div>Firma del supervisor</div></div>' +
+    '<div class="pie"><span>Fuente: evaluaciones semanales guardadas en MyGeotab</span><span>1 de 1</span></div></div></div>';
+  $('#eo-reporteMes').innerHTML = html;
+  ultimoMes = { nombre: nombre, mes: mes };
+  $('#eo-btnMesPdf').disabled = false;
+}
+
+/* =====================================================================
+   TENDENCIAS
+   ===================================================================== */
+var tend = { modo: 'op', per: 'sem', sel: null };
+function columnasTend(){
+  var cols = [];
+  if (tend.per === 'sem'){ var l = lunes(new Date()); for (var i = 12; i >= 1; i--){ var d = masDias(l, -7 * i); cols.push({ k: ymd(d), etq: 'S' + semanaISO(d), sub: d.getDate() + ' ' + MES3[d.getMonth()] }); } }
+  else { var h = new Date(); for (var j = 6; j >= 1; j--){ var m = new Date(h.getFullYear(), h.getMonth() - j + 1, 1); cols.push({ k: m.getFullYear() + '-' + String(m.getMonth() + 1).padStart(2, '0'), etq: MES3[m.getMonth()], sub: String(m.getFullYear()) }); } }
+  return cols;
+}
+function valorTend(clave, col){
+  var ws = historial.filter(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === clave && (tend.per === 'sem' ? h.semana === col.k : h.mes === col.k); });
+  return ws.length ? promedio(ws.map(function(w){ return w.total; })) : null;
+}
+function pintarTend(){
+  var ents = entidades(tend.modo), cols = columnasTend();
+  if (!ents.length){ $('#eo-tendTabla').innerHTML = '<div class="vacio">Aún no hay evaluaciones guardadas. Guarda evaluaciones semanales y aquí verás la mejora o el empeoramiento por semana y por mes.</div>'; $('#eo-tendGraf').innerHTML = ''; return; }
+  if (!tend.sel || !ents.some(function(e){ return e.clave === tend.sel; })) tend.sel = ents[0].clave;
+  var filas = ents.map(function(e){
+    var vals = cols.map(function(c){ return valorTend(e.clave, c); }), hay = vals.filter(function(v){ return v != null; });
+    var ult = hay[hay.length - 1], pen = hay[hay.length - 2], dif = (ult != null && pen != null) ? ult - pen : null;
+    var otros = Array.from(new Set(historial.filter(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === e.clave; }).map(function(h){ return tend.modo === 'op' ? h.eco : h.operador; }))).join(', ');
+    return { e: e, vals: vals, prom: promedio(hay), dif: dif, otros: otros };
+  });
+  $('#eo-tendTabla').innerHTML = '<div class="scroll"><table class="t2"><thead><tr><th>' + (tend.modo === 'op' ? 'Operador' : 'Unidad') + '</th><th>' + (tend.modo === 'op' ? 'Unidades' : 'Operadores') + '</th>' +
+    cols.map(function(c){ return '<th style="text-align:center">' + c.etq + '<br><span class="nota">' + c.sub + '</span></th>'; }).join('') + '<th style="text-align:right">Promedio</th><th>Cambio</th></tr></thead><tbody>' +
+    filas.map(function(f){
+      return '<tr' + (f.e.clave === tend.sel ? ' style="background:#E8EEF9"' : '') + '><td><button class="btn-mapa" data-tsel="' + esc(f.e.clave) + '" style="font-weight:700">' + esc(f.e.nombre) + '</button></td><td class="nota">' + esc(f.otros) + '</td>' +
+        f.vals.map(function(v){ return '<td style="text-align:center">' + (v == null ? '<span style="color:#9AA3A9">–</span>' : chip(v)) + '</td>'; }).join('') +
+        '<td style="text-align:right;font-weight:700">' + (f.prom == null ? '—' : Math.round(f.prom)) + '</td><td style="font-weight:700;color:' + (f.dif == null ? '#5E676F' : f.dif > 2 ? '#2E6B3F' : f.dif < -2 ? '#B3312C' : '#5E676F') + '">' + (f.dif == null ? '—' : f.dif > 2 ? 'Sube ' + Math.round(f.dif) : f.dif < -2 ? 'Baja ' + Math.round(-f.dif) : 'Estable') + '</td></tr>';
+    }).join('') + '</tbody></table></div><div class="nota" style="margin-top:6px">Cambio: último periodo con datos contra el anterior. Elige un nombre para ver su gráfica por rubro.</div>';
+  var ent = ents.find(function(e){ return e.clave === tend.sel; });
+  var rub = { seguridad: '#5CA36E', rendimientos: '#4A8DA3', servicio: '#B07A00', cualitativo: '#8E6BB4' };
+  var series = [{ nombre: 'Total', color: '#3E64B4', marca: 'c', valores: cols.map(function(c){ var v = valorTend(tend.sel, c); return v == null ? null : Math.round(v); }) }];
+  Object.keys(rub).forEach(function(k){ series.push({ nombre: k.charAt(0).toUpperCase() + k.slice(1), color: rub[k], marca: 's', valores: cols.map(function(c){ var ws = historial.filter(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === tend.sel && (tend.per === 'sem' ? h.semana === c.k : h.mes === c.k); }); var v = promedio(ws.map(function(w){ return w.rubros[k]; })); return v == null ? null : Math.round(v); }) }); });
+  var kml = cols.map(function(c){ var ws = historial.filter(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === tend.sel && (tend.per === 'sem' ? h.semana === c.k : h.mes === c.k) && h.litros; }); var km = ws.reduce(function(s, w){ return s + w.km; }, 0), lt = ws.reduce(function(s, w){ return s + w.litros; }, 0); return lt ? Math.round(km / lt * 100) / 100 : null; });
+  $('#eo-tendGraf').innerHTML = '<h2 class="sec">' + esc(ent.nombre) + ': calificación por ' + (tend.per === 'sem' ? 'semana' : 'mes') + '</h2>' +
+    grafLinea({ etiquetas: cols.map(function(c){ return c.etq + ' ' + c.sub.replace(/^\d{4}$/, ''); }), ymax: 100, ytxt: 'puntos', ref: 90, refTxt: '90 = comisión completa', aria: 'Tendencia de calificación', series: series }) +
+    '<h2 class="sec" style="margin-top:14px">Rendimiento de combustible (km/L)</h2>' +
+    grafLinea({ etiquetas: cols.map(function(c){ return c.etq; }), ytxt: 'km/L', aria: 'Tendencia de rendimiento', alto: 220, ref: (cfg.tipos[(historial.find(function(h){ return (tend.modo === 'op' ? h.opClave : h.deviceId) === tend.sel; }) || {}).tipoUnidad] || cfg.tipos.T).kml, refTxt: 'meta', series: [{ nombre: 'km/L', color: '#5CA36E', marca: 's', valores: kml }] });
+}
+
+/* =====================================================================
+   GEOCERCAS
+   ===================================================================== */
+var geoFilas = [];
+function cargarGeo(){
+  $('#eo-geoEstado').textContent = 'Leyendo control de viajes y geocercas…';
+  var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  return Promise.all([cargarControl(masDias(hoy, -90), masDias(hoy, 1)), cargarZonas()]).then(function(r){
+    if (r[0].error){ $('#eo-geoEstado').textContent = r[0].error; $('#eo-geoEstado').className = 'estado error'; return; }
+    var std = estandares(r[0].filas), m = {};
+    r[0].filas.forEach(function(f){ var k = claveRuta(f); if (!m[k]) m[k] = { f: f, n: 0 }; m[k].n++; });
+    geoFilas = Object.keys(m).map(function(k){ return { k: k, f: m[k].f, n: m[k].n, std: std[k] }; }).sort(function(a, b){ return b.n - a.n; });
+    pintarGeo();
+    $('#eo-geoEstado').className = 'estado'; $('#eo-geoEstado').textContent = geoFilas.length + ' rutas en los últimos 90 días, ' + zonas.length + ' geocercas en MyGeotab.';
+    $('#eo-btnGeoGuardar').disabled = false;
+  });
+}
+function celdaGeo(cliente, ciudad, lado, i){
+  var k = norm(cliente) + '|' + norm(ciudad), a = asignaciones[k], c = candidatos(cliente, ciudad);
+  var est = a ? '<span class="chip c-bien">Asignada</span>' : c.tipo === 'una' ? '<span class="chip c-bien">1 coincidencia</span>' : c.tipo === 'varias' ? '<span class="chip c-reg">' + c.zonas.length + ' posibles, elige</span>' : '<span class="chip c-mal">Sin geocerca del cliente</span>';
+  var ops = c.zonas.slice(); if (a && !ops.some(function(z){ return z.id === a.zonaId; })){ var za = zonas.find(function(z){ return z.id === a.zonaId; }); if (za) ops.unshift(za); }
+  var sel = a ? a.zonaId : (c.tipo === 'una' ? c.zonas[0].id : '');
+  return '<div style="display:flex;flex-direction:column;gap:4px">' + est + '<select data-geo="' + esc(k) + '" data-cli="' + esc(cliente) + '" data-ciu="' + esc(ciudad) + '" aria-label="Geocerca de ' + lado + '" style="min-height:34px;border:1px solid #C9D0CC;border-radius:5px;max-width:280px"><option value="">Elegir geocerca…</option>' +
+    ops.map(function(z){ return '<option value="' + esc(z.id) + '"' + (z.id === sel ? ' selected' : '') + '>' + esc(z.name) + '</option>'; }).join('') + '<option value="__todas">Ver todas las geocercas…</option></select></div>';
+}
+function pintarGeo(){
+  $('#eo-geoTabla').innerHTML = geoFilas.length ? '<div class="scroll"><table class="t2"><thead><tr><th>Cliente</th><th>Origen en control</th><th>Geocerca de origen</th><th>Destino en control</th><th>Geocerca de destino</th><th>Viajes</th><th>Tiempo estándar</th></tr></thead><tbody>' +
+    geoFilas.map(function(g, i){ return '<tr><td><b>' + esc(g.f.cliente) + '</b></td><td>' + esc(g.f.origen) + '</td><td>' + celdaGeo(g.f.cliente, g.f.origen, 'origen', i) + '</td><td>' + esc(g.f.destino) + '</td><td>' + celdaGeo(g.f.cliente, g.f.destino, 'destino', i) + '</td><td>' + g.n + '</td><td>' + (g.std ? hm(g.std.h) + '<br><span class="nota">mediana de ' + g.std.n + '</span>' : '<span class="nota">menos de 3 viajes</span>') + '</td></tr>'; }).join('') +
+    '</tbody></table></div>' : '<div class="vacio">Sin rutas en el periodo.</div>';
+}
+function guardarGeo(){
+  var cambios = [];
+  $$('#eo-geoTabla select[data-geo]').forEach(function(s){
+    var k = s.dataset.geo, v = s.value; if (!v || v === '__todas') return;
+    var c = candidatos(s.dataset.cli, s.dataset.ciu), a = asignaciones[k];
+    if (a && a.zonaId === v) return; if (!a && c.tipo === 'una' && c.zonas[0].id === v) return;
+    var z = zonas.find(function(x){ return x.id === v; });
+    cambios.push({ k: k, reg: { tipo: 'geo', clave: k, cliente: s.dataset.cli, ciudad: s.dataset.ciu, zonaId: v, zonaNombre: z ? z.name : '', guardadoEl: new Date().toISOString() } });
+  });
+  if (!cambios.length){ toast('No hay asignaciones nuevas'); return; }
+  $('#eo-btnGeoGuardar').disabled = true;
+  Promise.all(cambios.map(function(c){ return guardarDato(c.reg, asignRegistros[c.k]).then(function(id){ asignaciones[c.k] = c.reg; asignRegistros[c.k] = id; }); }))
+    .then(function(){ toast(cambios.length + ' asignaciones guardadas'); pintarGeo(); }).catch(function(e){ toast('No se pudo guardar: ' + (e.message || e)); })
+    .then(function(){ $('#eo-btnGeoGuardar').disabled = false; });
+}
+
+/* =====================================================================
+   REGLAS Y METAS
+   ===================================================================== */
+function pintarReglas(){
+  var seg = function(id, e){ return '<div class="seg" role="group" aria-label="Estado"><button class="c" data-regla="' + id + '" data-v="c" aria-pressed="' + (e === 'c') + '">Califica</button><button class="m" data-regla="' + id + '" data-v="m" aria-pressed="' + (e === 'm') + '">Solo mostrar</button><button class="a" data-regla="' + id + '" data-v="a" aria-pressed="' + (e === 'a') + '">Apagada</button></div>'; };
+  var h = '<h3 style="margin:0 0 6px;color:#3E64B4">Seguridad</h3><div class="scroll"><table class="t2"><thead><tr><th>Grupo</th><th>Regla</th><th>Fuente</th><th>En la evaluación</th><th>Cuenta</th><th>Puntos</th></tr></thead><tbody>' +
+    '<tr><td>Velocidad</td><td><b>Exceso sobre el límite por tipo</b><br><span class="nota">Calculado del GPS (no depende de una regla)</span></td><td>Telemetría</td><td>' + seg('__vel', cfg.velocidad.estado) + '</td><td>por evento</td><td><input type="number" min="0" data-pts="__vel" value="' + cfg.velocidad.puntos + '" style="width:64px;min-height:32px"> +' + cfg.velocidad.extraGrave + ' si pasa ' + cfg.velocidad.margenGrave + ' km/h</td></tr>' +
+    cfg.reglas.map(function(r){ return '<tr style="' + (r.estado === 'a' ? 'opacity:.55' : '') + '"><td>' + GRUPOS[r.grupo] + '</td><td><b>' + esc(r.nombre) + '</b><br><span class="nota">' + esc(r.id) + '</span></td><td>' + esc(r.fuente) + '</td><td>' + seg(r.id, r.estado) + '</td><td><select data-cuenta="' + r.id + '" style="min-height:32px"><option value="evento"' + (r.cuenta === 'evento' ? ' selected' : '') + '>por evento</option><option value="dia"' + (r.cuenta === 'dia' ? ' selected' : '') + '>por día</option></select></td><td><input type="number" min="0" data-pts="' + r.id + '" value="' + r.puntos + '" style="width:64px;min-height:32px"></td></tr>'; }).join('') +
+    cfg.pendientes.map(function(p){ return '<tr style="background:#FFFBF5"><td>Cámara obstruida o tapada</td><td><b>' + esc(p.nombre) + '</b></td><td>' + esc(p.fuente) + '</td><td colspan="3"><span class="chip c-mal">Pendiente</span> <span class="nota">' + esc(p.motivo) + '</span></td></tr>'; }).join('') +
+    '</tbody></table></div><p class="nota">Las reglas que cuentan “por día” del mismo grupo se juntan: un día con cinturón detectado por varias fuentes cuenta una sola vez.</p>' +
+    '<h3 style="margin:16px 0 6px;color:#3E64B4">Metas por tipo de unidad</h3><div class="scroll"><table class="t2"><thead><tr><th>Tipo</th><th>Nombre</th><th>Vel. máx. (km/h)</th><th>Rendimiento meta (km/L)</th><th>Km por semana</th></tr></thead><tbody>' +
+    Object.keys(cfg.tipos).map(function(k){ var t = cfg.tipos[k]; return '<tr><td><b>' + k + '</b></td><td><input data-tipo="' + k + '" data-c="nombre" value="' + esc(t.nombre) + '" style="min-height:32px;width:110px"></td><td><input type="number" data-tipo="' + k + '" data-c="vmax" value="' + t.vmax + '" style="min-height:32px;width:80px"></td><td><input type="number" step="0.1" data-tipo="' + k + '" data-c="kml" value="' + t.kml + '" style="min-height:32px;width:80px"></td><td><input type="number" data-tipo="' + k + '" data-c="kmSemana" value="' + t.kmSemana + '" style="min-height:32px;width:90px"></td></tr>'; }).join('') +
+    '</tbody></table></div>' +
+    '<h3 style="margin:16px 0 6px;color:#3E64B4">Pesos y comisión</h3><div class="campos">' +
+    Object.keys(cfg.pesos).map(function(k){ return '<label class="campo" style="flex:0 1 130px">' + k.charAt(0).toUpperCase() + k.slice(1) + ' (%)<input type="number" data-peso="' + k + '" value="' + cfg.pesos[k] + '"></label>'; }).join('') +
+    '<label class="campo" style="flex:0 1 160px">Ralentí meta (%)<input type="number" data-ral="metaPct" value="' + cfg.ralenti.metaPct + '"></label></div>' +
+    '<p class="nota">Escala de comisión: ' + cfg.comision.map(function(c){ return c.min + '+ pts = ' + c.pct + '%'; }).join(', ') + '.</p>';
+  $('#eo-reglasCont').innerHTML = h;
+}
+function leerReglasForm(){
+  $$('#eo-reglasCont input[data-pts]').forEach(function(i){ var v = Math.max(0, +i.value || 0); if (i.dataset.pts === '__vel') cfg.velocidad.puntos = v; else { var r = cfg.reglas.find(function(x){ return x.id === i.dataset.pts; }); if (r) r.puntos = v; } });
+  $$('#eo-reglasCont select[data-cuenta]').forEach(function(s){ var r = cfg.reglas.find(function(x){ return x.id === s.dataset.cuenta; }); if (r) r.cuenta = s.value; });
+  $$('#eo-reglasCont input[data-tipo]').forEach(function(i){ var t = cfg.tipos[i.dataset.tipo]; t[i.dataset.c] = i.dataset.c === 'nombre' ? i.value : +i.value; });
+  $$('#eo-reglasCont input[data-peso]').forEach(function(i){ cfg.pesos[i.dataset.peso] = +i.value || 0; });
+  $$('#eo-reglasCont input[data-ral]').forEach(function(i){ cfg.ralenti[i.dataset.ral] = +i.value || 0; });
+}
+function guardarReglas(){
+  leerReglasForm();
+  var reg = { tipo: 'config', cfg: { pesos: cfg.pesos, tipos: cfg.tipos, velocidad: cfg.velocidad, ralenti: cfg.ralenti, reglas: cfg.reglas }, guardadoEl: new Date().toISOString() };
+  $('#eo-btnReglasGuardar').disabled = true;
+  guardarDato(reg, cfgRegistro).then(function(id){ cfgRegistro = id; toast('Configuración guardada. Aplica a las siguientes evaluaciones.'); recalcular(); })
+    .catch(function(e){ toast('No se pudo guardar: ' + (e.message || e)); }).then(function(){ $('#eo-btnReglasGuardar').disabled = false; });
+}
+
+/* =====================================================================
+   NAVEGACIÓN E INICIO
+   ===================================================================== */
+function verTab(t){
+  $$('.tab').forEach(function(b){ b.setAttribute('aria-selected', String(b.dataset.tab === t)); });
+  ['semana', 'mes', 'tend', 'geo', 'reglas'].forEach(function(k){ $('#eo-tab-' + k).classList.toggle('oculto', k !== t); });
+  if (t === 'mes'){ pintarEntidadesMes(); }
+  if (t === 'tend') pintarTend();
+  if (t === 'reglas') pintarReglas();
+  if (t === 'geo' && !geoFilas.length) cargarGeo();
+}
+function toggle(id, fn){ $(id).addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; $$(id + ' button').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); }); fn(b.dataset.v); }); }
+function enlazar(){
+  $$('.tab').forEach(function(b){ b.addEventListener('click', function(){ verTab(b.dataset.tab); }); });
+  $('#eo-buscar').addEventListener('input', pintarUnidades);
+  $('#eo-semana').addEventListener('change', function(){ $('#eo-semana').value = ymd(lunes(deYmd($('#eo-semana').value))); pintarUnidades(); });
+  $('#eo-listaUnidades').addEventListener('click', function(e){
+    var b = e.target.closest('.uni'); if (!b) return;
+    unidadSel = unidades.find(function(u){ return u.id === b.dataset.id; }); $('#eo-operador').dataset.auto = '1'; ['#eo-qMultas', '#eo-qDanios'].forEach(function(s){ $(s).value = 0; }); $('#eo-qInstr').value = 'si'; $('#eo-qMtto').value = 'si';
+    pintarUnidades(); generarSemana();
+  });
+  $('#eo-operador').addEventListener('input', function(){ this.dataset.auto = this.value ? '0' : '1'; recalcular(); });
+  ['#eo-qInstr', '#eo-qMultas', '#eo-qDanios', '#eo-qMtto'].forEach(function(s){ $(s).addEventListener('input', recalcular); });
+  $('#eo-btnGenerar').addEventListener('click', generarSemana);
+  $('#eo-btnGuardar').addEventListener('click', guardarSemana);
+  $('#eo-btnPdf').addEventListener('click', function(){ if (ultimaEval) descargarPdf('eo-hojasSemana', 'Evaluacion_' + ultimaEval.u.eco + '_' + (ultimaEval.operador || '') + '_' + ymd(ultimaEval.desde)); });
+  $('#eo-reporteSemana').addEventListener('click', function(e){ var b = e.target.closest('[data-mapa]'); if (!b) return; if (pageState && pageState.gotoPage) pageState.gotoPage('tripsHistory', { devices: [ultimaEval.u.id], dateRange: { startDate: b.dataset.desde, endDate: b.dataset.hasta } }); else toast('El mapa se abre dentro de MyGeotab.'); });
+  toggle('#eo-mesModo', function(v){ mesModo = v; pintarEntidadesMes(); $('#eo-reporteMes').innerHTML = ''; $('#eo-btnMesPdf').disabled = true; });
+  $('#eo-btnMes').addEventListener('click', verMes);
+  $('#eo-btnMesPdf').addEventListener('click', function(){ if (ultimoMes) descargarPdf('eo-hojasMes', 'Evaluacion_mensual_' + ultimoMes.nombre + '_' + ultimoMes.mes); });
+  toggle('#eo-tendModo', function(v){ tend.modo = v; tend.sel = null; pintarTend(); });
+  toggle('#eo-tendPer', function(v){ tend.per = v; pintarTend(); });
+  $('#eo-tendTabla').addEventListener('click', function(e){ var b = e.target.closest('[data-tsel]'); if (b){ tend.sel = b.dataset.tsel; pintarTend(); } });
+  $('#eo-btnGeoCargar').addEventListener('click', cargarGeo);
+  $('#eo-btnGeoGuardar').addEventListener('click', guardarGeo);
+  $('#eo-geoTabla').addEventListener('change', function(e){
+    var s = e.target.closest('select[data-geo]'); if (!s || s.value !== '__todas') return;
+    s.innerHTML = '<option value="">Elegir geocerca…</option>' + zonas.slice().sort(function(a, b){ return a.name.localeCompare(b.name); }).map(function(z){ return '<option value="' + esc(z.id) + '">' + esc(z.name) + '</option>'; }).join('');
+  });
+  $('#eo-btnReglasGuardar').addEventListener('click', guardarReglas);
+  $('#eo-reglasCont').addEventListener('click', function(e){
+    var b = e.target.closest('[data-regla]'); if (!b) return; leerReglasForm();
+    if (b.dataset.regla === '__vel') cfg.velocidad.estado = b.dataset.v; else { var r = cfg.reglas.find(function(x){ return x.id === b.dataset.regla; }); if (r) r.estado = b.dataset.v; }
+    pintarReglas();
+  });
+}
+function iniciar(){
+  if (iniciado) return Promise.resolve(); iniciado = true;
+  enlazar();
+  var l = lunes(masDias(new Date(), -7)); $('#eo-semana').value = ymd(l);
+  $('#eo-mes').value = mesDeSemana(l);
+  $('#eo-dbNombre').textContent = demo ? 'Modo demostración con datos de ejemplo' : (api && api.database ? 'Base: ' + api.database : '');
+  estado('Cargando unidades e historial…');
+  return Promise.all([cargarUnidades(), cargarAlmacen()]).then(function(){
+    pintarUnidades();
+    estado('Elige una unidad para generar su evaluación.');
+    if (demo){ unidadSel = unidades.find(function(u){ return u.eco === 'T37'; }) || unidades[0]; pintarUnidades(); return generarSemana(); }
+  }).catch(function(e){ estado('Error al iniciar: ' + (e.message || e), true); });
+}
+
+/* Registro del add-in en MyGeotab */
+window.geotab = window.geotab || { addin: {} };
+window.geotab.addin = window.geotab.addin || {};
+window.geotab.addin.evaluacionOperador = function(){
+  return {
+    initialize: function(a, s, cb){
+      inyectarCSS();
+      api = a; pageState = s; demo = false;
+      if (a.getSession) a.getSession(function(se){ api.database = se.database; api.userName = se.userName; $('#eo-dbNombre').textContent = 'Base: ' + se.database; });
+      iniciar().then(function(){ cb(); });
+    },
+    focus: function(a, s){ api = a; pageState = s; },
+    blur: function(){}
+  };
+};
+
+/* =====================================================================
+   MODO DEMOSTRACIÓN (fuera de MyGeotab)
+   ===================================================================== */
+var DEMO = (function(){
+  function rnd(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  var Z = { 'PEPSICO NUEVO LAREDO': [27.48, -99.52], 'Pepsico Cedis Nvo. Laredo': [27.45, -99.55], 'CEDIS SABINAS NL': [26.50, -100.17], 'Pepsico Cedis Sabinas Hdg.': [26.51, -100.19], 'WHIRLPOOL RAMOS': [25.53, -100.95], 'Planta Whirlpool': [25.78, -100.19], 'Taller Pepsico Guadalupe': [25.68, -100.25], 'CEDIS SALTILLO': [25.43, -101.00], 'PATIO VENTI': [25.75, -100.30] };
+  var DEV = [['b53', 'T37 Julio Rdz'], ['b6', 'T16 Pedro Ozuna'], ['b23', 'T32 Ricardo Rmz'], ['b36', 'T33 Rene Vzqz'], ['b4F', 'T34 Giovani Benavides'], ['b5', 'T15 Mario Galvan '], ['bA', 'T10 Luis Cortes'], ['b8', 'T01'], ['b7', 'T08'], ['bC', 'T09'], ['b4', 'T11'], ['b2FC', 'T14 '], ['bD', 'T17 '], ['b1DB', 'V02'], ['b12B', 'V19 '], ['b12C', 'V20'], ['b51', 'V35 SLWA'], ['b52', 'V36 SLWA'], ['b129', 'R13 '], ['b1EA', 'R38'], ['b12A', 'C18 '], ['b209', 'RKT1001'], ['b18', 'Rq 1533029'], ['b32E', 'TOYOTA YARIS'], ['b1C0', 'COROLLA 2025']].map(function(x){ return { id: x[0], name: x[1] }; });
+  var almacen = [], sigId = 1;
+  var OPS = { T37: 'Oscar Rivera Vazquez', T16: 'Pedro Ozuna', T32: 'Ricardo Ramirez', T33: 'Rene Vazquez', T34: 'Giovani Benavides', T15: 'Mario Galvan', V35: 'Sin operador', V36: 'Sin operador' };
+  function semilla(){
+    var l = lunes(new Date()), r = rnd(11);
+    Object.keys(OPS).forEach(function(eco, k){
+      var d = DEV.find(function(x){ return x.name.indexOf(eco) === 0; }); var base = [74, 82, 91, 86, 68, 89, 80, 85][k];
+      for (var i = 12; i >= 2; i--){
+        var s = masDias(l, -7 * i), tend = (12 - i) * ([-.6, .9, .2, .4, -.9, .3, .5, .6][k]);
+        var seg = clamp(base - 8 + tend + r() * 12), ren = clamp(base + r() * 10 - 3), ser = clamp(base + r() * 14 - 6), cua = r() > .85 ? 75 : 100;
+        var tot = Math.round(seg * .45 + ren * .2 + ser * .25 + cua * .1), km = Math.round(1800 + r() * 900), lt = eco[0] === 'V' && eco === 'V35' ? null : Math.round(km / ((eco[0] === 'V' ? 8.5 : 3.1) + r() * .6));
+        var op = eco === 'T37' && i === 7 ? 'Jorge Uriel' : OPS[eco];
+        almacen.push({ id: 'h' + (sigId++), addInId: AJUSTES.addInId, details: { tipo: 'eval', v: 1, semana: ymd(s), mes: mesDeSemana(s), deviceId: d.id, eco: eco, unidad: d.name, tipoUnidad: eco[0], operador: op, opClave: norm(op), total: tot,
+          comision: tot >= 90 ? 100 : tot >= 80 ? 95 : tot >= 70 ? 90 : 80, rubros: { seguridad: Math.round(seg), rendimientos: Math.round(ren), servicio: Math.round(ser), cualitativo: cua }, km: km, litros: lt, kml: lt ? Math.round(km / lt * 100) / 100 : null,
+          ralPct: Math.round(8 + r() * 10), incidencias: Math.round((100 - seg) / 6), porGrupo: { velocidad: Math.round(r() * 5), cinturon: Math.round(r() * 3), conducta: Math.round(r() * 2), obstruccion: r() > .8 ? 1 : 0 }, velMax: Math.round(110 + r() * 25), viajes: 4 + Math.round(r() * 3), guardadoEl: ymd(masDias(s, 8)) } });
+      }
+    });
+  }
+  semilla();
+  [['pepsico|monterrey', 'z6', 'Taller Pepsico Guadalupe'], ['pepsico|nuevolaredo', 'z0', 'PEPSICO NUEVO LAREDO']].forEach(function(g){
+    var p = g[0].split('|'); almacen.push({ id: 'g' + (sigId++), addInId: AJUSTES.addInId, details: { tipo: 'geo', clave: g[0], cliente: p[0].toUpperCase(), ciudad: p[1], zonaId: g[1], zonaNombre: g[2] } });
+  });
+  var cache = {};
+  function construir(base){
+    var k = ymd(base); if (cache[k]) return cache[k];
+    var r = rnd(7), trips = [], logs = [], exc = [];
+    var legs = [[0, 5.5, .5, 22, 25, 'PATIO VENTI', 'Taller Pepsico Guadalupe'], [0, 7.2, 3.1, 228, 20, 'Taller Pepsico Guadalupe', 'PEPSICO NUEVO LAREDO', [[.4, 3, 124]]], [0, 13, 3.0, 226, 30, 'PEPSICO NUEVO LAREDO', 'PATIO VENTI'],
+      [1, 6, 1.9, 120, 15, 'PATIO VENTI', 'Taller Pepsico Guadalupe'], [1, 9, 1.6, 115, 25, 'Taller Pepsico Guadalupe', 'CEDIS SABINAS NL'], [1, 13, 1.7, 118, 35, 'CEDIS SABINAS NL', 'PATIO VENTI'],
+      [2, 7, .6, 30, 10, 'PATIO VENTI', 'Planta Whirlpool'], [2, 9.5, 2.1, 98, 20, 'Planta Whirlpool', 'WHIRLPOOL RAMOS'], [2, 14, 1.4, 95, 25, 'WHIRLPOOL RAMOS', 'PATIO VENTI'],
+      [3, 6.5, .5, 22, 10, 'PATIO VENTI', 'Taller Pepsico Guadalupe'], [3, 8, 3.8, 230, 40, 'Taller Pepsico Guadalupe', 'PEPSICO NUEVO LAREDO', [[.55, 3, 131]]], [3, 14, 3.1, 226, 20, 'PEPSICO NUEVO LAREDO', 'PATIO VENTI'],
+      [4, 7, 1.5, 88, 20, 'PATIO VENTI', 'CEDIS SALTILLO'], [4, 10, 1.4, 88, 30, 'CEDIS SALTILLO', 'PATIO VENTI'], [5, 8, 3.0, 228, 25, 'PATIO VENTI', 'PEPSICO NUEVO LAREDO'], [5, 13, 3.0, 226, 20, 'PEPSICO NUEVO LAREDO', 'PATIO VENTI']];
+    legs.forEach(function(L, i){
+      var ini = new Date(base.getTime() + L[0] * 864e5 + L[1] * 36e5), dur = L[2] * 3600, fin = new Date(ini.getTime() + dur * 1000), o = Z[L[5]], de = Z[L[6]];
+      trips.push({ id: 't' + i, start: ini.toISOString(), stop: fin.toISOString(), distance: L[3], drivingDuration: '0' + Math.floor(dur / 3600) + ':' + String(Math.floor(dur % 3600 / 60)).padStart(2, '0') + ':00', idlingDuration: '00:' + String(L[4]).padStart(2, '0') + ':00', stopPoint: { x: de[1] + .002, y: de[0] + .002 }, driver: 'UnknownDriverId' });
+      var b0 = 82 + r() * 8;
+      for (var s = 0; s <= dur; s += 45){ var f = s / dur, v = b0 + r() * 8 - 4; if (s < 300) v *= s / 300; if (dur - s < 300) v *= (dur - s) / 300; (L[7] || []).forEach(function(x){ if (f >= x[0] && f <= x[0] + x[1] * 60 / dur) v = x[2] - r() * 2; }); logs.push({ dateTime: new Date(ini.getTime() + s * 1000).toISOString(), speed: Math.max(0, Math.round(v)), latitude: o[0] + (de[0] - o[0]) * f, longitude: o[1] + (de[1] - o[1]) * f }); }
+    });
+    function ev(id, ti, f, d){ var t = trips[ti], a = new Date(t.start), b = new Date(t.stop), at = new Date(a.getTime() + (b - a) * f); exc.push({ rule: { id: id }, activeFrom: at.toISOString(), duration: '00:00:' + String(d).padStart(2, '0') }); }
+    ev('RuleHarshBrakingId', 1, .3, 2); ev('RuleHarshBrakingId', 10, .7, 3); ev('RuleJackrabbitStartsId', 4, .1, 2); ev('RuleHarshCorneringId', 7, .5, 2); ev('RuleHarshCorneringId', 12, .4, 2);
+    ev('ayBVf7frHRUCvK-2fiH1LUA', 0, .2, 30); ev('RuleSeatbeltId', 0, .25, 40); 
+    ev('acKvvJoW5ZEWuygwsnuSnyQ', 11, .55, 14); ev('aI0P9Iuu7FkK6Q3vJJFF9mg', 1, .65, 6); ev('RuleCameraLensObstructionId', 12, .1, 50);
+    return (cache[k] = { trips: trips, logs: logs, exc: exc });
+  }
+  function rango(t, s){ var x = new Date(t); return x >= new Date(s.fromDate) && x < new Date(s.toDate); }
+  function base(s){ return lunes(new Date(s.fromDate)); }
+  function responder(m, p){
+    var s = (p && p.search) || {};
+    if (m === 'GetAddresses') return p.coordinates.map(function(c){ return { formattedAddress: c.y > 26.8 ? 'Carr. 85 Monterrey–Nuevo Laredo, cerca de Sabinas Hidalgo' : 'Carr. 85, Ciénega de Flores, N.L.' }; });
+    if (m === 'Add'){ var id = 'n' + (sigId++); almacen.push({ id: id, addInId: p.entity.addInId, details: JSON.parse(JSON.stringify(p.entity.details)) }); return id; }
+    if (m === 'Set'){ var x = almacen.find(function(a){ return a.id === p.entity.id; }); if (x) x.details = JSON.parse(JSON.stringify(p.entity.details)); return null; }
+    switch (p.typeName){
+      case 'Device': return DEV;
+      case 'AddInData': return almacen.filter(function(a){ return a.addInId === s.addInId; }).map(function(a){ return { id: a.id, details: JSON.parse(JSON.stringify(a.details)) }; });
+      case 'Trip': return s.deviceSearch.id === 'b53' ? construir(base(s)).trips.filter(function(t){ return rango(t.start, s); }) : [];
+      case 'LogRecord': return s.deviceSearch.id === 'b53' ? construir(lunes(new Date(s.fromDate))).logs.filter(function(l){ return rango(l.dateTime, s); }) : [];
+      case 'ExceptionEvent': return s.deviceSearch.id === 'b53' ? construir(base(s)).exc.filter(function(e){ return e.rule.id === s.ruleSearch.id && rango(e.activeFrom, s); }) : [];
+      case 'StatusData': return [{ data: 30000 + (new Date(s.fromDate) - new Date(2026, 0, 1)) / 864e5 * 100 }];
+      case 'Zone': return Object.keys(Z).map(function(n, i){ var c = Z[n], q = .03; return { id: 'z' + i, name: n, points: [{ x: c[1] - q, y: c[0] - q }, { x: c[1] + q, y: c[0] - q }, { x: c[1] + q, y: c[0] + q }, { x: c[1] - q, y: c[0] + q }] }; })
+        .concat(['CEDIS SAN ROQUE', 'Gamesa', 'Sabritas Saltillo', 'Rocket Logistics WH', 'Patio Nuevo Laredo GV', 'TLW NVO LAREDO'].map(function(n, i){ return { id: 'y' + i, name: n, points: [] }; }));
+    }
+    return [];
+  }
+  function control(desde, hasta){
+    var hdr = ['RKT', 'Fecha de carga', 'Cliente', 'Origen', 'Hora llegada Origen', 'Hora Salida Origen', 'ETA', 'Destino', 'Fecha llegada destino', 'Hora arribo destino', 'Unidad', 'Caja', 'Operador'], rows = [], n = 4800;
+    for (var d = new Date(desde); d < hasta; d = masDias(d, 1)){
+      var dow = (d.getDay() + 6) % 7, f = ymd(d);
+      if (dow === 0) rows.push(['RKT00' + (n++), f, 'PEPSICO', 'MONTERREY', '06:10', '07:15', '', 'NUEVO LAREDO', f, '10:25', 'T37', 'C-112', 'Oscar Rivera Vazquez']);
+      if (dow === 1) rows.push(['RKT00' + (n++), f, 'PEPSICO', 'MONTERREY', '08:20', '09:00', '', 'SABINAS NL', f, '10:40', 'T37', 'C-112', 'Oscar Rivera Vazquez']);
+      if (dow === 2) rows.push(['RKT00' + (n++), f, 'WHIRLPOOL', 'APODACA', '07:35', '09:30', '', 'RAMOS ARIZPE', f, '11:35', 'T37', 'C-087', 'Oscar Rivera Vazquez']);
+      if (dow === 3) rows.push(['RKT00' + (n++), f, 'PEPSICO', 'MONTERREY', '06:40', '08:00', '', 'NUEVO LAREDO', f, '11:10', 'T37', 'C-112', 'Oscar Rivera Vazquez']);
+      if (dow === 4) rows.push(['RKT00' + (n++), f, 'CHEP', 'MONTERREY', '06:50', '07:00', '', 'SALTILLO', f, '08:30', 'T37', 'C-045', 'Oscar Rivera Vazquez']);
+      if (dow === 5) rows.push(['RKT00' + (n++), f, 'PEPSICO', 'MONTERREY', '07:20', '08:00', '', 'NUEVO LAREDO', f, '10:55', 'T37', 'C-112', 'Oscar Rivera Vazquez']);
+    }
+    return { headers: hdr, rows: rows };
+  }
+  return {
+    control: control,
+    api: {
+      call: function(m, p, ok, err){ setTimeout(function(){ try { ok(responder(m, p)); } catch (e){ if (err) err(e); } }, 40); },
+      multiCall: function(c, ok, err){ setTimeout(function(){ try { ok(c.map(function(x){ return responder(x[0], x[1]); })); } catch (e){ if (err) err(e); } }, 60); }
+    }
+  };
+})();
+function arrancarDemo(){ if (api) return; inyectarCSS(); demo = true; api = DEMO.api; iniciar(); }
+var enMyGeotab = /geotab\.com$/i.test(location.hostname) || /mygeotab/i.test(location.hostname);
+if (!enMyGeotab){ if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrancarDemo); else arrancarDemo(); }
+
+window.__evaluacion = { cfg: function(){ return cfg; }, AJUSTES: AJUSTES };
+})();
+</script>
+</body>
+</html>
