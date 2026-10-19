@@ -186,8 +186,11 @@ var CONFIG_BASE = {
   casetas: { tipos: ['T'], margenMin: 30 },
   velocidad: { estado: 'c', cuenta: 'dia', puntos: 5, extraGrave: 5, margenGrave: 10, minSeg: 20, unirSeg: 120 },   // por día con exceso; subidas separadas por menos de 2 min son un solo exceso
   periodo: { diaInicio: 4, corte: 'carga' },
+  version: 2,
+  // Tope de puntos que puede restar cada grupo en Seguridad (así un solo tipo de falta no deja todo en cero)
+  topes: { velocidad: 40, conducta: 40, cinturon: 20, obstruccion: 30, habitos: 20 },
   ralenti: { metaPct: 10, maxPct: 25 },
-  servicio: { tolLlegadaMin: 30, tolTransitoPct: 10 },
+  servicio: { tolLlegadaMin: 30, tolTransitoPct: 10, base: 'control' },   // tránsito con las horas del control (igual que el estándar); el GPS queda como referencia
   cualitativo: { porFalta: 20, porMulta: 25, porDanio: 30, reportesNo: 20 },
   comision: [ { min: 90, pct: 12 }, { min: 85, pct: 11 }, { min: 80, pct: 10 }, { min: 70, pct: 9 }, { min: 0, pct: 8 } ],   // % sobre la facturación del periodo
   reglas: [
@@ -200,11 +203,11 @@ var CONFIG_BASE = {
     { id: 'RuleCameraLensObstructionId', nombre: 'Cámara al conductor obstruida', fuente: 'GO Focus', grupo: 'obstruccion', estado: 'c', cuenta: 'dia', puntos: 15 },
     { id: 'RuleRoadCameraAdjustmentRequiredId', nombre: 'Cámara al camino requiere ajuste', fuente: 'GO Focus', grupo: 'obstruccion', estado: 'c', cuenta: 'dia', puntos: 15 },
     { id: 'RuleCameraTamperingId', nombre: 'Tapa de cámara removida', fuente: 'GO Focus', grupo: 'obstruccion', estado: 'm', cuenta: 'evento', puntos: 25 },
-    { id: 'acKvvJoW5ZEWuygwsnuSnyQ', nombre: 'Uso de celular', fuente: 'CAMS', grupo: 'conducta', estado: 'c', cuenta: 'evento', puntos: 10 },
-    { id: 'aI0P9Iuu7FkK6Q3vJJFF9mg', nombre: 'Distracción', fuente: 'CAMS', grupo: 'conducta', estado: 'c', cuenta: 'evento', puntos: 5 },
-    { id: 'apn4hG8p8BUmfDOGasBzx9A', nombre: 'Fumando', fuente: 'CAMS', grupo: 'conducta', estado: 'a', cuenta: 'evento', puntos: 8 },
-    { id: 'aBB_zy3L6z0GDVD7bOS532A', nombre: 'Conductor bostezando', fuente: 'CAMS', grupo: 'conducta', estado: 'a', cuenta: 'evento', puntos: 5 },
-    { id: 'amCShnqNIJUWQctcmI8J8Sw', nombre: 'Distancia de seguimiento', fuente: 'CAMS', grupo: 'conducta', estado: 'a', cuenta: 'evento', puntos: 5 }
+    { id: 'acKvvJoW5ZEWuygwsnuSnyQ', nombre: 'Uso de celular', fuente: 'CAMS', grupo: 'conducta', estado: 'c', cuenta: 'dia', puntos: 10 },
+    { id: 'aI0P9Iuu7FkK6Q3vJJFF9mg', nombre: 'Distracción', fuente: 'CAMS', grupo: 'conducta', estado: 'c', cuenta: 'dia', puntos: 5 },
+    { id: 'apn4hG8p8BUmfDOGasBzx9A', nombre: 'Fumando', fuente: 'CAMS', grupo: 'conducta', estado: 'a', cuenta: 'dia', puntos: 8 },
+    { id: 'aBB_zy3L6z0GDVD7bOS532A', nombre: 'Conductor bostezando', fuente: 'CAMS', grupo: 'conducta', estado: 'a', cuenta: 'dia', puntos: 5 },
+    { id: 'amCShnqNIJUWQctcmI8J8Sw', nombre: 'Distancia de seguimiento', fuente: 'CAMS', grupo: 'conducta', estado: 'a', cuenta: 'dia', puntos: 5 }
   ],
   pendientes: [
     { nombre: 'Obstrucción de cámara MM Cam', fuente: 'MM Cam', motivo: 'Su análisis vive en otro add-in; falta definir cómo leerlo' },
@@ -382,7 +385,13 @@ function cargarAlmacen(){
     });
     configs.sort(function(a, b){ return a.d.guardadoEl < b.d.guardadoEl ? 1 : -1; });
     if (configs[0]){ cfgRegistro = configs[0].id; cfg = Object.assign(clonar(CONFIG_BASE), configs[0].d.cfg);
-      if (!cfg.velocidad.cuenta) cfg.velocidad = Object.assign({}, CONFIG_BASE.velocidad, { estado: cfg.velocidad.estado }); }
+      if (!cfg.velocidad.cuenta) cfg.velocidad = Object.assign({}, CONFIG_BASE.velocidad, { estado: cfg.velocidad.estado });
+      if (!cfg.version || cfg.version < 2){
+        cfg.reglas.forEach(function(r){ if (r.grupo === 'conducta') r.cuenta = 'dia'; });
+        cfg.topes = clonar(CONFIG_BASE.topes); cfg.servicio = Object.assign({}, CONFIG_BASE.servicio, cfg.servicio || {}, { base: 'control' }); cfg.version = 2;
+        setTimeout(function(){ toast('Configuración actualizada: cámara por día y topes por grupo. Guárdala en Reglas y metas para conservarla.'); }, 1500);
+      }
+      if (!cfg.topes) cfg.topes = clonar(CONFIG_BASE.topes); }
   }).catch(function(e){ console.warn('AddInData', e); toast('No se pudo leer el historial guardado'); });
 }
 function guardarDato(detalles, id){
@@ -721,7 +730,8 @@ function evaluar(u, desde, hasta, d, cual, operador){
   var tipo = cfg.tipos[u.tipo], lim = tipo.vmax, nD = Math.round((hasta - desde) / 86400000);
   var dias = []; for (var i = 0; i < nD; i++) dias.push(masDias(desde, i));
   function di(t){ return Math.floor((t - desde) / 86400000); }
-  var mejorar = [], items = [], pts = 0;
+  var mejorar = [], items = [], pts = 0, ptsG = {};
+  var sumar = function(g, p){ ptsG[g] = (ptsG[g] || 0) + p; };
 
   /* --- velocidad --- */
   var om = cual.omitir || {}, omitidas = [];
@@ -736,7 +746,7 @@ function evaluar(u, desde, hasta, d, cual, operador){
     var diasV = Object.keys(porDiaV), pv;
     if ((cfg.velocidad.cuenta || 'dia') === 'dia') pv = diasV.reduce(function(s, k){ return s + cfg.velocidad.puntos + (porDiaV[k].grave ? cfg.velocidad.extraGrave : 0); }, 0);
     else pv = exc.reduce(function(s, e){ return s + cfg.velocidad.puntos + (e.grave ? cfg.velocidad.extraGrave : 0); }, 0);
-    pts += pv;
+    sumar('velocidad', pv);
     var porDia = (cfg.velocidad.cuenta || 'dia') === 'dia';
     items.push({ grupo: 'velocidad', nombre: 'Exceso de velocidad', n: porDia ? diasV.length : exc.length, unidadN: porDia ? 'días' : null, cuando: resumenDias(exc.map(function(e){ return e.ini; })) + ' · ' + exc.length + (exc.length === 1 ? ' exceso' : ' excesos') + ' · máx. ' + velMax + ' km/h', fuente: 'Telemetría', pts: pv });
     mejorar.push('Velocidad: ' + exc.length + (exc.length === 1 ? ' exceso' : ' excesos') + ' sobre ' + lim + ' km/h en ' + diasV.length + (diasV.length === 1 ? ' día' : ' días') + '; la máxima fue <b>' + velMax + ' km/h</b>' + (function(){ var e = exc.slice().sort(function(a, b){ return b.max - a.max; })[0]; return ' el ' + ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][e.ini.getDay()] + ' ' + e.ini.getDate(); })() + '.');
@@ -752,25 +762,29 @@ function evaluar(u, desde, hasta, d, cual, operador){
   cfg.reglas.forEach(function(r){
     if (r.estado !== 'c') return;
     var evs = eventos.filter(function(e){ return e.regla.id === r.id && !e.omit; });
-    if (r.cuenta === 'dia'){ var g = porGrupoDia[r.grupo] = porGrupoDia[r.grupo] || { dias: {}, puntos: 0, fuentes: {} }; g.puntos = Math.max(g.puntos, r.puntos); evs.forEach(function(e){ g.dias[ymd(e.ini)] = e.ini; g.fuentes[r.fuente] = 1; }); }
-    else if (evs.length){ var p = evs.length * r.puntos; pts += p; items.push({ regla: true, grupo: r.grupo, nombre: r.nombre, n: evs.length, cuando: resumenDias(evs.map(function(e){ return e.ini; }), true), fuente: r.fuente, pts: p }); }
+    var clave = (r.grupo === 'cinturon' || r.grupo === 'obstruccion') ? r.grupo : r.grupo + '|' + r.id;
+    if (r.cuenta === 'dia'){ var g = porGrupoDia[clave] = porGrupoDia[clave] || { grupo: r.grupo, nombre: r.nombre, regla: r.grupo !== 'cinturon' && r.grupo !== 'obstruccion', dias: {}, n: 0, puntos: 0, fuentes: {} }; g.puntos = Math.max(g.puntos, r.puntos); g.n += evs.length; evs.forEach(function(e){ g.dias[ymd(e.ini)] = e.ini; g.fuentes[r.fuente] = 1; }); }
+    else if (evs.length){ var p = evs.length * r.puntos; sumar(r.grupo, p); items.push({ regla: true, grupo: r.grupo, nombre: r.nombre, n: evs.length, cuando: resumenDias(evs.map(function(e){ return e.ini; }), true), fuente: r.fuente, pts: p }); }
   });
   Object.keys(porGrupoDia).forEach(function(gk){
     var g = porGrupoDia[gk], ks = Object.keys(g.dias); if (!ks.length) return;
-    var p = ks.length * g.puntos; pts += p;
-    items.push({ grupo: gk, nombre: gk === 'cinturon' ? 'Sin cinturón de seguridad' : gk === 'obstruccion' ? 'Cámara obstruida' : GRUPOS[gk], n: ks.length, unidadN: 'días', cuando: resumenDias(ks.map(function(k){ return g.dias[k]; })), fuente: Object.keys(g.fuentes).join(' y '), pts: p });
+    var p = ks.length * g.puntos; sumar(g.grupo, p);
+    items.push({ regla: g.regla, grupo: g.grupo, nombre: g.grupo === 'cinturon' ? 'Sin cinturón de seguridad' : g.grupo === 'obstruccion' ? 'Cámara obstruida' : g.nombre, n: ks.length, unidadN: 'días', eventosN: g.n, cuando: resumenDias(ks.map(function(k){ return g.dias[k]; })) + (g.regla && g.n > ks.length ? ' · ' + g.n + ' alertas' : ''), fuente: Object.keys(g.fuentes).join(' y '), pts: p });
   });
   var porGrupo = {}; items.forEach(function(it){ (porGrupo[it.grupo] = porGrupo[it.grupo] || []).push(it); });
   var velR = (porGrupo.velocidad || []).filter(function(it){ return it.regla; });
   if (velR.length) mejorar.push('Velocidad: ' + velR.map(function(it){ return '<b>' + esc(it.nombre) + ' (' + it.n + ')</b>'; }).join(', ') + '.');
-  if (porGrupo.conducta) mejorar.push('Cámara: ' + porGrupo.conducta.map(function(it){ return (it.nombre === 'Uso de celular' ? '<b style="color:#B3312C">' : '<b>') + it.nombre.toLowerCase() + ' (' + it.n + ')</b>'; }).join(', ') + '.');
+  if (porGrupo.conducta) mejorar.push('Cámara: ' + porGrupo.conducta.map(function(it){ return (it.nombre === 'Uso de celular' ? '<b style="color:#B3312C">' : '<b>') + it.nombre.toLowerCase() + '</b> ' + (it.unidadN ? it.n + (it.n === 1 ? ' día' : ' días') + (it.eventosN && it.eventosN > it.n ? ' (' + it.eventosN + ' alertas)' : '') : '(' + it.n + ')'); }).join(', ') + '.');
   if (porGrupo.cinturon) mejorar.push('Cinturón: sin cinturón en <b>' + porGrupo.cinturon[0].n + (porGrupo.cinturon[0].n === 1 ? ' día' : ' días') + '</b>.');
   if (porGrupo.obstruccion) mejorar.push('Cámara obstruida o tapada en <b>' + porGrupo.obstruccion[0].n + (porGrupo.obstruccion[0].n === 1 ? ' día' : ' días') + '</b>. La cámara al conductor y al camino deben estar libres.');
   var nSegPre = mejorar.length;
   if (porGrupo.habitos) mejorar.push('Manejo brusco: ' + porGrupo.habitos.map(function(it){ return it.n + ' ' + it.nombre.toLowerCase(); }).join(', ') + '.');
   var nSeg = mejorar.length;
+  var topes = cfg.topes || {}, ptsTopados = 0;
+  Object.keys(ptsG).forEach(function(g){ ptsTopados += topes[g] != null ? Math.min(ptsG[g], topes[g]) : ptsG[g]; });
+  pts = ptsTopados;
   var seguridad = clamp(100 - pts);
-  var incidencias = items.reduce(function(s, it){ return s + it.n; }, 0);
+  var incidencias = items.reduce(function(s, it){ return s + (it.eventosN || it.n); }, 0);
 
   /* --- rendimientos --- */
   var km = 0, manejo = 0, ral = 0, kmDia = dias.map(function(){ return 0; }), ralDia = dias.map(function(){ return 0; }), manDia = dias.map(function(){ return 0; }), conViaje = dias.map(function(){ return false; });
@@ -807,11 +821,13 @@ function evaluar(u, desde, hasta, d, cual, operador){
     var std0 = d.std[claveRuta(f)], ventana = Math.max(24, std0 ? std0.h * 3 : 0) * 3600000;
     if (salG && zD){ var a = trips.find(function(t){ return t.ini >= salG && t.fin - salG <= ventana && dentro(t.pt, zD); }); arrG = a ? a.fin : null; }
     if (salG && !arrG){ salG = null; }
-    var sal = salG || f.salO, arr = arrG || f.arrD, trans = (sal && arr && arr > sal) ? (arr - sal) / 3600000 : null;
+    var transGps = (salG && arrG && arrG > salG) ? (arrG - salG) / 3600000 : null, transCtl = (f.salO && f.arrD && f.arrD > f.salO) ? (f.arrD - f.salO) / 3600000 : null;
+    var usarCtl = (cfg.servicio.base || 'control') === 'control' && transCtl != null;
+    var sal = usarCtl ? f.salO : (salG || f.salO), arr = usarCtl ? f.arrD : (arrG || f.arrD), trans = usarCtl ? transCtl : (transGps != null ? transGps : transCtl);
     var std = d.std[claveRuta(f)], transOk = (trans != null && std) ? trans <= std.h * (1 + cfg.servicio.tolTransitoPct / 100) : null;
     var lleg = llegG || f.llegO, tarde = (f.cita && lleg) ? (lleg - f.cita) / 60000 : null, aTiempo = tarde == null ? null : tarde <= cfg.servicio.tolLlegadaMin;
     return { rkt: f.rkt, cliente: f.cliente, ruta: f.origen + ' – ' + f.destino, cita: f.cita, lleg: lleg, llegG: llegG, llegC: f.llegO, tarde: tarde, aTiempo: aTiempo, sal: sal, arr: arr, carga: f.fecha,
-             trans: trans, std: std ? std.h : null, stdN: std ? std.n : 0, transOk: transOk, fuente: (salG && arrG) ? 'GPS' : 'control', zO: zO ? zO.name : null, zD: zD ? zD.name : null };
+             trans: trans, transGps: transGps, transCtl: transCtl, std: std ? std.h : null, stdN: std ? std.n : 0, transOk: transOk, fuente: usarCtl ? 'control' : (salG && arrG) ? 'GPS' : 'control', zO: zO ? zO.name : null, zD: zD ? zD.name : null };
   });
   viajes.forEach(function(v){ v.key = 'viaje:' + v.rkt; v.omit = !!om[v.key]; if (v.omit) omitidas.push({ concepto: 'Viaje ' + v.rkt + ' (' + v.ruta + ')', o: om[v.key] }); });
   var conL = viajes.filter(function(v){ return !v.omit && v.aTiempo != null; }), conT = viajes.filter(function(v){ return !v.omit && v.transOk != null; });
@@ -1044,7 +1060,7 @@ function armarHojas(e, nivel){
     (e.casetas.length ? secc('cas', 'Casetas a revisar (TeleVía)', e.casetas.length, '<div class="scroll"><table class="t2"><thead><tr><th>Cuenta</th><th>Fecha y hora</th><th>Caseta</th><th>Motivo</th><th class="der">Importe</th><th></th></tr></thead><tbody>' +
       e.casetas.map(function(c){ return '<tr' + (c.justificada ? ' style="opacity:.6"' : '') + '><td>' + casilla(c.key, c.justificada, omI[c.key] || (c.justificada ? { motivo: 'Justificada' } : null)) + '</td><td>' + fechaHora(c.fecha) + '</td><td>' + esc(c.plaza) + '</td><td>' + esc(c.motivo) + '</td><td class="der">' + mxn(c.importe) + '</td><td>' + btnMapa(new Date(c.fecha.getTime() - 600000), new Date(c.fecha.getTime() + 600000)) + '</td></tr>'; }).join('') + '</tbody></table></div>') : '') +
     (e.viajes.length ? secc('viajes', 'Viajes: control contra GPS', e.viajes.length, '<div class="scroll"><table class="t2"><thead><tr><th>Cuenta</th><th>Viaje</th><th>Geocerca origen / destino</th><th>Llegada a origen<br><span class="nota">control / GPS</span></th><th class="der">Tránsito</th><th>Fuente</th></tr></thead><tbody>' +
-      e.viajes.map(function(v){ var dif = v.llegC && v.llegG ? Math.round((v.llegC - v.llegG) / 60000) : null; return '<tr' + (v.omit ? ' style="opacity:.6"' : '') + '><td>' + casilla(v.key, v.omit, omI[v.key]) + '</td><td><b>' + esc(v.rkt) + '</b><br><span class="nota">' + esc(v.cliente + ', ' + v.ruta) + '</span></td><td>' + esc(v.zO || 'sin geocerca') + '<br>' + esc(v.zD || 'sin geocerca') + '</td><td>' + (v.llegC ? hora(v.llegC) : '—') + ' / ' + (v.llegG ? hora(v.llegG) : '—') + (dif != null && Math.abs(dif) > 15 ? '<br><span class="rojo">diferencia ' + dif + ' min</span>' : '') + '</td><td class="der">' + hm(v.trans) + '</td><td style="white-space:nowrap">' + (v.fuente === 'GPS' ? 'GPS' : 'Control') + '</td></tr>'; }).join('') +
+      e.viajes.map(function(v){ var dif = v.llegC && v.llegG ? Math.round((v.llegC - v.llegG) / 60000) : null; return '<tr' + (v.omit ? ' style="opacity:.6"' : '') + '><td>' + casilla(v.key, v.omit, omI[v.key]) + '</td><td><b>' + esc(v.rkt) + '</b><br><span class="nota">' + esc(v.cliente + ', ' + v.ruta) + '</span></td><td>' + esc(v.zO || 'sin geocerca') + '<br>' + esc(v.zD || 'sin geocerca') + '</td><td>' + (v.llegC ? hora(v.llegC) : '—') + ' / ' + (v.llegG ? hora(v.llegG) : '—') + (dif != null && Math.abs(dif) > 15 ? '<br><span class="rojo">diferencia ' + dif + ' min</span>' : '') + '</td><td class="der">' + hm(v.trans) + (v.transGps != null && v.fuente !== 'GPS' ? '<br><span class="nota">GPS ' + hm(v.transGps) + '</span>' : '') + '</td><td style="white-space:nowrap">' + (v.fuente === 'GPS' ? 'GPS' : 'Control') + '</td></tr>'; }).join('') +
       '</tbody></table></div><div class="nota">Quitar un viaje lo saca del servicio y de la facturación de la liquidación.</div>') : '') +
     (e.diesel ? secc('diesel', 'Rebaje de diésel', null, '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">' + casilla('diesel', e.diesel.omit, omI.diesel) + '<div>' + diaTxt(e.diesel.A.fecha) + ' → ' + diaTxt(e.diesel.P[e.diesel.P.length - 1].fecha) + ': cargado ' + n0(e.diesel.lfis) + ' L, motor ' + n0(e.diesel.lecu) + ' L, variación ' + n1(e.diesel.varPct) + '% · rebaje ' + mxn(e.diesel.rebaje) + '</div></div><div class="nota">Quítalo si sabes que faltó registrar una carga o hay una falla del sensor.</div>') : '') +
     (e.omitidas.length ? secc('omit', 'Omitido en esta revisión', e.omitidas.length, '<ul style="margin:0;padding-left:18px">' + e.omitidas.map(function(x){ return '<li>' + esc(x.concepto) + ' — <i>' + esc((x.o && x.o.motivo) || '') + '</i>' + (x.o && x.o.por ? ' (' + esc(x.o.por) + ')' : '') + '</li>'; }).join('') + '</ul>') : '') + '</div>';
@@ -1641,6 +1657,10 @@ function pintarReglas(){
     '<label class="campo">Grupo<select id="eo-nuevaGrupo">' + Object.keys(GRUPOS).map(function(g){ return '<option value="' + g + '">' + GRUPOS[g] + '</option>'; }).join('') + '</select></label>' +
     '<label class="campo" style="flex:0 1 110px">Puntos<input type="number" id="eo-nuevaPts" value="5" min="0"></label>' +
     '<div class="acciones"><button class="btn btn-s" id="eo-btnAgregarRegla">Agregar</button></div></div>' +
+    '<h3 style="margin:16px 0 6px;color:#3E64B4">Tope de puntos por grupo (Seguridad)</h3><div class="campos">' +
+    Object.keys(GRUPOS).map(function(g){ return '<label class="campo" style="flex:0 1 170px">' + GRUPOS[g] + '<input type="number" min="0" data-tope="' + g + '" value="' + ((cfg.topes || {})[g] != null ? cfg.topes[g] : '') + '" placeholder="sin tope"></label>'; }).join('') + '</div>' +
+    '<p class="nota">Lo máximo que puede restar cada grupo. Ejemplo: aunque haya 38 alertas de celular, cámara no resta más de su tope.</p>' +
+    '<h3 style="margin:16px 0 6px;color:#3E64B4">Tiempo de tránsito</h3><div class="campos"><label class="campo" style="flex:0 1 320px">Medir con<select id="eo-baseTrans"><option value="control"' + ((cfg.servicio.base || 'control') === 'control' ? ' selected' : '') + '>Horas del control (igual que el estándar)</option><option value="gps"' + (cfg.servicio.base === 'gps' ? ' selected' : '') + '>GPS y geocercas</option></select></label></div>' +
     '<h3 style="margin:16px 0 6px;color:#3E64B4">Periodo de evaluación</h3><div class="campos">' +
     '<label class="campo" style="flex:0 1 220px">Corte de viajes por<select id="eo-corte"><option value="carga"' + (cfg.periodo.corte === 'carga' ? ' selected' : '') + '>Fecha de carga</option><option value="arribo"' + (cfg.periodo.corte === 'arribo' ? ' selected' : '') + '>Fecha de arribo a destino</option></select></label>' +
     '<label class="campo" style="flex:0 1 220px">Día de inicio del periodo<select id="eo-diaInicio">' + ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'].map(function(n, i){ return '<option value="' + i + '"' + (cfg.periodo.diaInicio === i ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label></div>' +
@@ -1665,11 +1685,13 @@ function leerReglasForm(){
   $$('#eo-reglasCont input[data-peso]').forEach(function(i){ cfg.pesos[i.dataset.peso] = +i.value || 0; });
   $$('#eo-reglasCont input[data-ral]').forEach(function(i){ cfg.ralenti[i.dataset.ral] = +i.value || 0; });
   if ($('#eo-corte')) cfg.periodo.corte = $('#eo-corte').value;
+  cfg.topes = cfg.topes || {}; $$('#eo-reglasCont input[data-tope]').forEach(function(i){ if (i.value === '') delete cfg.topes[i.dataset.tope]; else cfg.topes[i.dataset.tope] = Math.max(0, +i.value || 0); });
+  if ($('#eo-baseTrans')) cfg.servicio.base = $('#eo-baseTrans').value;
   if ($('#eo-diaInicio')) cfg.periodo.diaInicio = +$('#eo-diaInicio').value;
 }
 function guardarReglas(){
   leerReglasForm();
-  var reg = { tipo: 'config', cfg: { pesos: cfg.pesos, tipos: cfg.tipos, velocidad: cfg.velocidad, ralenti: cfg.ralenti, reglas: cfg.reglas, periodo: cfg.periodo, cualitativo: cfg.cualitativo }, guardadoEl: new Date().toISOString() };
+  var reg = { tipo: 'config', cfg: { pesos: cfg.pesos, tipos: cfg.tipos, velocidad: cfg.velocidad, ralenti: cfg.ralenti, reglas: cfg.reglas, periodo: cfg.periodo, cualitativo: cfg.cualitativo, topes: cfg.topes, servicio: cfg.servicio, version: 2 }, guardadoEl: new Date().toISOString() };
   $('#eo-btnReglasGuardar').disabled = true;
   guardarDato(reg, cfgRegistro).then(function(id){ cfgRegistro = id; toast('Configuración guardada. Aplica a las siguientes evaluaciones.'); recalcular(); })
     .catch(function(e){ toast('No se pudo guardar: ' + (e.message || e)); }).then(function(){ $('#eo-btnReglasGuardar').disabled = false; });
